@@ -97,6 +97,29 @@ final class NetworkingTests: XCTestCase {
         XCTAssertEqual(unusual.severity, "high")
     }
 
+    func testAgentQueryResponseDecoding() throws {
+        let json = """
+        {
+            "response": "You spent $450.00 on groceries this month.",
+            "tool_calls": [
+                {
+                    "tool_name": "get_spending_by_category",
+                    "arguments": { "category": "Food" },
+                    "output": { "total": "450.00" }
+                }
+            ],
+            "grounded": true
+        }
+        """.data(using: .utf8)!
+
+        let decoder = FinLensJSONDecoder.makeStandard()
+        let dto = try decoder.decode(AgentResponseDTO.self, from: json)
+        XCTAssertEqual(dto.response, "You spent $450.00 on groceries this month.")
+        XCTAssertEqual(dto.toolCalls.count, 1)
+        XCTAssertEqual(dto.toolCalls[0].toolName, "get_spending_by_category")
+        XCTAssertTrue(dto.grounded)
+    }
+
     @MainActor
     func testAppViewModelWithMockAPIClient() async {
         let mockClient = MockAPIClient()
@@ -108,6 +131,14 @@ final class NetworkingTests: XCTestCase {
         XCTAssertEqual(vm.summary?.totalIncome, Decimal(string: "5000.00")!)
         XCTAssertEqual(vm.transactions.count, 1)
         XCTAssertEqual(vm.categorySpending.count, 1)
+
+        await vm.sendChatMessage("What is my spending?")
+        XCTAssertEqual(vm.chatMessages.count, 2)
+        XCTAssertEqual(vm.chatMessages[0].role, .user)
+        XCTAssertEqual(vm.chatMessages[1].role, .assistant)
+        XCTAssertEqual(vm.chatMessages[1].content, "Mock agent answer: You spent $1200.00")
+        XCTAssertEqual(vm.lastToolCalls.count, 1)
+        XCTAssertEqual(vm.lastToolCalls[0].friendlyName, "Category Breakdown")
     }
 }
 
@@ -148,4 +179,12 @@ final class MockAPIClient: APIClientProtocol, Sendable {
         Statement(filename: filename, fileFormat: .csv)
     }
     func deleteStatement(id: String) async throws {}
+    func askAgent(message: String, history: [AgentHistoryItem]?) async throws -> AgentQueryResult {
+        AgentQueryResult(
+            response: "Mock agent answer: You spent $1200.00",
+            toolCalls: [AgentToolCall(toolName: "get_spending_by_category", description: "Food")],
+            grounded: true
+        )
+    }
 }
+

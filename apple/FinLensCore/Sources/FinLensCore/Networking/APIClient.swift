@@ -34,7 +34,9 @@ public protocol APIClientProtocol: Sendable {
     func fetchStatements() async throws -> [Statement]
     func uploadStatement(data: Data, filename: String) async throws -> Statement
     func deleteStatement(id: String) async throws
+    func askAgent(message: String, history: [AgentHistoryItem]?) async throws -> AgentQueryResult
 }
+
 
 public actor APIClient: APIClientProtocol {
     public let baseURL: URL
@@ -178,7 +180,43 @@ public actor APIClient: APIClientProtocol {
         }
     }
 
+    public func askAgent(message: String, history: [AgentHistoryItem]? = nil) async throws -> AgentQueryResult {
+        let url = baseURL.appendingPathComponent("api/agent/query")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let reqBody = AgentQueryRequest(message: message, history: history)
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        request.httpBody = try encoder.encode(reqBody)
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpRes = response as? HTTPURLResponse else {
+            throw APIError.networkError("Invalid HTTP response.")
+        }
+        guard (200...299).contains(httpRes.statusCode) else {
+            let msg = String(data: data, encoding: .utf8) ?? "HTTP \(httpRes.statusCode)"
+            throw APIError.serverError(statusCode: httpRes.statusCode, message: msg)
+        }
+
+        let dto = try decoder.decode(AgentResponseDTO.self, from: data)
+        let toolCalls = dto.toolCalls.map { raw in
+            AgentToolCall(
+                toolName: raw.toolName,
+                description: raw.toolName
+            )
+        }
+        return AgentQueryResult(
+            response: dto.response,
+            toolCalls: toolCalls,
+            grounded: dto.grounded
+        )
+    }
+
     // MARK: - Private Helpers
+
 
     private func performRequest<T: Decodable>(url: URL) async throws -> T {
         var request = URLRequest(url: url)

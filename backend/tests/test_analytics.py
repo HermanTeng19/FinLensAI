@@ -225,8 +225,9 @@ async def test_analytics_api_endpoints(client: AsyncClient):
 
     # 5. Period Comparison API
     comp_res = await client.get(
-        "/api/analytics/comparison?curr_start=2026-08-01&curr_end=2026-08-31&prev_start=2026-07-01&prev_end=2026-07-31"
+        f"/api/analytics/comparison?curr_start=2026-08-01&curr_end=2026-08-31&prev_start=2026-07-01&prev_end=2026-07-31&statement_id={stmt_id}"
     )
     assert comp_res.status_code == 200
     comp = comp_res.json()
     assert Decimal(str(comp["current_income"])) == Decimal("3500.00")
+

@@ -12,43 +12,45 @@ struct TabSectionView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // Header Banner
-                VStack(spacing: 8) {
-                    Image(systemName: "chart.line.uptrend.xyaxis.circle.fill")
-                        .font(.system(size: 48))
-                        .foregroundStyle(.tint)
-                        .symbolRenderingMode(.hierarchical)
-                        .padding(.top, 8)
+                // Header Banner (Prominent on Dashboard, Compact on other tabs)
+                if tab == .dashboard {
+                    VStack(spacing: 8) {
+                        Image(systemName: "chart.line.uptrend.xyaxis.circle.fill")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.tint)
+                            .symbolRenderingMode(.hierarchical)
+                            .padding(.top, 8)
 
-                    Text(viewModel.appTitle)
-                        .font(.largeTitle.bold())
-                        .foregroundStyle(.primary)
+                        Text(viewModel.appTitle)
+                            .font(.largeTitle.bold())
+                            .foregroundStyle(.primary)
 
-                    Text(viewModel.appTagline)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
+                        Text(viewModel.appTagline)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
 
-                    // Backend Connection Status Indicator
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(viewModel.isServerConnected ? Color.green : Color.orange)
-                            .frame(width: 8, height: 8)
-                        Text(viewModel.isServerConnected ? "Backend Online (FastAPI + PostgreSQL)" : "Offline Mode (Local Cache)")
-                            .font(.caption2.bold())
-                            .foregroundStyle(viewModel.isServerConnected ? .green : .secondary)
+                        // Backend Connection Status Indicator
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(viewModel.isServerConnected ? Color.green : Color.orange)
+                                .frame(width: 8, height: 8)
+                            Text(viewModel.isServerConnected ? "Backend Online (FastAPI + PostgreSQL)" : "Offline Mode (Local Cache)")
+                                .font(.caption2.bold())
+                                .foregroundStyle(viewModel.isServerConnected ? .green : .secondary)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.secondary.opacity(0.1)))
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Capsule().fill(Color.secondary.opacity(0.1)))
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.secondary.opacity(0.08))
+                    )
+                    .padding(.horizontal)
                 }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.secondary.opacity(0.08))
-                )
-                .padding(.horizontal)
 
                 if let error = viewModel.errorMessage {
                     HStack {
@@ -85,8 +87,11 @@ struct TabSectionView: View {
                 }
                 .padding(.horizontal)
             }
-            .padding(.vertical)
+            .padding(.top)
+            .padding(.bottom, 70)
         }
+
+
         .navigationTitle(tab.rawValue)
         .refreshable {
             await viewModel.refresh()
@@ -313,52 +318,193 @@ struct InsightsSectionView: View {
 
 // MARK: - Ask AI Section
 struct AskAISectionView: View {
+    @Environment(AppViewModel.self) private var viewModel
     @State private var queryText: String = ""
 
     let samplePrompts = [
-        "How much did I spend on dining out last month?",
+        "What is my spending by category?",
         "What recurring subscriptions do I have?",
         "Which transactions look unusual or unexpected?",
-        "Compare this month's spending with last month."
+        "What was my total spending and income?"
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Ask FinLens AI about your finances")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 18) {
+            // Header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("FinLens AI Financial Assistant", systemImage: "sparkles")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Text("Grounded strictly in your bank statements using deterministic financial tools.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                if !viewModel.chatMessages.isEmpty {
+                    Button("Clear", role: .destructive) {
+                        viewModel.clearChat()
+                    }
+                    .font(.caption)
+                    .buttonStyle(.bordered)
+                }
+            }
 
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(samplePrompts, id: \.self) { prompt in
-                    Button {
-                        queryText = prompt
-                    } label: {
-                        HStack {
-                            Image(systemName: "sparkles")
-                                .foregroundStyle(.tint)
-                            Text(prompt)
-                                .font(.subheadline)
-                                .foregroundStyle(.primary)
+            // Quick Starter Prompts
+            if viewModel.chatMessages.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Quick Prompts")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.secondary)
+
+                    ForEach(samplePrompts, id: \.self) { prompt in
+                        Button {
+                            Task {
+                                await viewModel.sendChatMessage(prompt)
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "sparkles")
+                                    .foregroundStyle(.tint)
+                                Text(prompt)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                                Image(systemName: "arrow.up.circle.fill")
+                                    .foregroundStyle(.tint.opacity(0.8))
+                            }
+                            .padding()
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.06)))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            } else {
+                // Chat Stream
+                VStack(spacing: 16) {
+                    ForEach(viewModel.chatMessages) { message in
+                        ChatMessageRow(message: message)
+                    }
+
+                    if viewModel.isAgentThinking {
+                        HStack(spacing: 12) {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text("FinLens AI is executing financial tools...")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                             Spacer()
                         }
                         .padding()
-                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.06)))
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.05)))
                     }
-                    .buttonStyle(.plain)
                 }
             }
 
-            HStack {
-                TextField("Ask a question about your spending...", text: $queryText)
+            // Bottom Input Bar
+            HStack(spacing: 8) {
+                TextField("Ask about transactions, categories, subscriptions...", text: $queryText)
                     .textFieldStyle(.roundedBorder)
-                Button("Ask") {
-                    // Phase 8 integration
+                    .onSubmit {
+                        submitCurrentQuery()
+                    }
+
+                Button {
+                    submitCurrentQuery()
+                } label: {
+                    Image(systemName: "paperplane.fill")
+                        .font(.body)
                 }
                 .buttonStyle(.borderedProminent)
+                .disabled(queryText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isAgentThinking)
             }
-            .padding(.top, 8)
+            .padding(.top, 4)
+        }
+    }
+
+    private func submitCurrentQuery() {
+        let text = queryText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, !viewModel.isAgentThinking else { return }
+        queryText = ""
+        Task {
+            await viewModel.sendChatMessage(text)
         }
     }
 }
+
+// MARK: - Chat Message Row
+struct ChatMessageRow: View {
+    let message: ChatMessage
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            if message.role == .user {
+                Spacer(minLength: 40)
+                Text(message.content)
+                    .font(.body)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(RoundedRectangle(cornerRadius: 16).fill(Color.accentColor))
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    // Header with Grounded Badge
+                    HStack(spacing: 6) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(.tint)
+                        Text("FinLens AI")
+                            .font(.caption.bold())
+
+                        Spacer()
+
+                        if message.isGrounded {
+                            HStack(spacing: 4) {
+                                Image(systemName: "checkmark.seal.fill")
+                                    .foregroundStyle(.green)
+                                Text("Grounded")
+                                    .font(.caption2.bold())
+                                    .foregroundStyle(.green)
+                            }
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(Color.green.opacity(0.12)))
+                        }
+                    }
+
+                    // Tool Badges
+                    if !message.toolCalls.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 6) {
+                                ForEach(message.toolCalls) { tool in
+                                    HStack(spacing: 4) {
+                                        Image(systemName: tool.iconName)
+                                            .font(.caption2)
+                                        Text(tool.friendlyName)
+                                            .font(.caption2.bold())
+                                    }
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Capsule().fill(Color.secondary.opacity(0.1)))
+                                    .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+
+                    // Message Content
+                    Text(message.content)
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                        .textSelection(.enabled)
+                }
+                .padding(14)
+                .background(RoundedRectangle(cornerRadius: 16).fill(Color.secondary.opacity(0.08)))
+                Spacer(minLength: 40)
+            }
+        }
+    }
+}
+
 
 // MARK: - Profile & Statements Section
 struct ProfileSectionView: View {

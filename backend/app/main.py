@@ -7,6 +7,7 @@ from app.api.health import router as health_router
 from app.api.statements import router as statements_router
 from app.api.transactions import router as transactions_router
 from app.api.analytics import router as analytics_router
+from app.api.agent import router as agent_router
 
 
 @asynccontextmanager
@@ -39,6 +40,7 @@ app.include_router(health_router)
 app.include_router(statements_router, prefix=settings.API_V1_PREFIX)
 app.include_router(transactions_router, prefix=settings.API_V1_PREFIX)
 app.include_router(analytics_router, prefix=settings.API_V1_PREFIX)
+app.include_router(agent_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/")

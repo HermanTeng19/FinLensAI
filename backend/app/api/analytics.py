@@ -139,6 +139,7 @@ async def get_period_comparison(
     curr_end: date = Query(...),
     prev_start: date = Query(...),
     prev_end: date = Query(...),
+    statement_id: Optional[uuid.UUID] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     if curr_start > curr_end or prev_start > prev_end:
@@ -147,14 +148,17 @@ async def get_period_comparison(
             detail="Start date cannot be after end date.",
         )
 
-    curr_res = await db.execute(
-        select(Transaction).where(Transaction.date >= curr_start, Transaction.date <= curr_end)
-    )
+    curr_query = select(Transaction).where(Transaction.date >= curr_start, Transaction.date <= curr_end)
+    prev_query = select(Transaction).where(Transaction.date >= prev_start, Transaction.date <= prev_end)
+    if statement_id:
+        curr_query = curr_query.where(Transaction.statement_id == statement_id)
+        prev_query = prev_query.where(Transaction.statement_id == statement_id)
+
+    curr_res = await db.execute(curr_query)
     curr_txns = curr_res.scalars().all()
 
-    prev_res = await db.execute(
-        select(Transaction).where(Transaction.date >= prev_start, Transaction.date <= prev_end)
-    )
+    prev_res = await db.execute(prev_query)
     prev_txns = prev_res.scalars().all()
 
     return compare_periods(curr_txns, prev_txns)
+

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, date, timezone
 from decimal import Decimal
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Dict
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -124,3 +124,27 @@ class PeriodComparison(BaseModel):
     previous_income: Decimal
     delta_income: Decimal
     top_increased_categories: List[CategorySpending] = []
+
+
+# Agent & Chat Schemas
+class ToolCallRecord(BaseModel):
+    tool_name: str
+    arguments: Dict[str, Any]
+    output: Any
+
+
+class ChatMessage(BaseModel):
+    role: str = Field(..., description="'user', 'assistant', or 'system'")
+    content: str
+
+
+class AgentQueryRequest(BaseModel):
+    message: str
+    history: List[ChatMessage] = []
+
+
+class AgentQueryResponse(BaseModel):
+    response: str
+    tool_calls: List[ToolCallRecord] = []
+    grounded: bool = True
+

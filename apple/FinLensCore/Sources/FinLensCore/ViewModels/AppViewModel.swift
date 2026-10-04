@@ -19,20 +19,29 @@ public final class AppViewModel {
     public private(set) var unusualTransactions: [UnusualTransaction] = []
     public private(set) var statements: [Statement] = []
 
+    // Agent Chat State
+
+    public private(set) var chatMessages: [ChatMessage] = []
+    public private(set) var isAgentThinking: Bool = false
+    public private(set) var lastToolCalls: [AgentToolCall] = []
+
     // Network & UI Status
     public private(set) var isServerConnected: Bool = false
     public private(set) var isLoading: Bool = false
     public private(set) var isUploading: Bool = false
     public private(set) var errorMessage: String? = nil
 
+
     private let apiClient: any APIClientProtocol
 
     public init(apiClient: any APIClientProtocol = APIClient()) {
         self.apiClient = apiClient
+        self.selectedTab = .dashboard
         Task {
             await self.loadAllData()
         }
     }
+
 
     public func selectTab(_ tab: NavigationTab) {
         self.selectedTab = tab
@@ -110,6 +119,46 @@ public final class AppViewModel {
 
         self.isLoading = false
     }
+
+    public func sendChatMessage(_ messageText: String) async {
+        let trimmed = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        let userMsg = ChatMessage(role: .user, content: trimmed)
+        self.chatMessages.append(userMsg)
+        self.isAgentThinking = true
+
+        do {
+            let history = self.chatMessages.dropLast().map {
+                AgentHistoryItem(role: $0.role.rawValue, content: $0.content)
+            }
+            let response = try await apiClient.askAgent(message: trimmed, history: history)
+            let assistantMsg = ChatMessage(
+                role: .assistant,
+                content: response.response,
+                toolCalls: response.toolCalls,
+                isGrounded: response.grounded
+            )
+            self.chatMessages.append(assistantMsg)
+            self.lastToolCalls = response.toolCalls
+        } catch {
+            let fallbackMsg = ChatMessage(
+                role: .assistant,
+                content: "FinLens AI couldn't process your request: \(error.localizedDescription)",
+                toolCalls: [],
+                isGrounded: false
+            )
+            self.chatMessages.append(fallbackMsg)
+        }
+
+        self.isAgentThinking = false
+    }
+
+    public func clearChat() {
+        self.chatMessages.removeAll()
+        self.lastToolCalls.removeAll()
+    }
+
 
     private func loadOfflineSampleData() {
         if self.transactions.isEmpty {
