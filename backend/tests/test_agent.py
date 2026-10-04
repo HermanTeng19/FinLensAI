@@ -1,23 +1,24 @@
-import pytest
-from decimal import Decimal
-from datetime import date
 import uuid
+from datetime import date
+from decimal import Decimal
+
+import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.models import Transaction, Statement
+from app.models.models import Statement, Transaction
+from app.services.agent.agent import query_financial_agent
 from app.services.agent.tools import (
-    search_transactions,
-    get_transaction_details,
-    get_spending_by_category,
+    TOOL_DEFINITIONS,
     compare_periods,
-    get_top_transactions,
     detect_recurring_transactions,
     detect_unusual_transactions,
     get_monthly_summary,
-    TOOL_DEFINITIONS,
+    get_spending_by_category,
+    get_top_transactions,
+    get_transaction_details,
+    search_transactions,
 )
-from app.services.agent.agent import query_financial_agent
 
 
 @pytest.fixture

@@ -1,17 +1,17 @@
 from app.models.models import (
-    User,
+    Category,
+    Insight,
+    ProcessingJob,
     Statement,
     Transaction,
-    Category,
-    ProcessingJob,
-    Insight,
+    User,
 )
 
 __all__ = [
-    "User",
+    "Category",
+    "Insight",
+    "ProcessingJob",
     "Statement",
     "Transaction",
-    "Category",
-    "ProcessingJob",
-    "Insight",
+    "User",
 ]

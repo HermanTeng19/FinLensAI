@@ -2,12 +2,13 @@ import logging
 import uuid
 from datetime import date
 from decimal import Decimal
+
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.privacy import redact_sensitive_text, SensitiveDataFilter
+from app.core.privacy import SensitiveDataFilter, redact_sensitive_text
 from app.models.models import Insight, ProcessingJob, Statement, Transaction
 
 
@@ -171,7 +172,11 @@ async def test_statement_cascade_deletion(client: AsyncClient, db_session: Async
     await db_session.commit()
 
     # Verify records exist
-    res_txns = (await db_session.execute(select(Transaction).where(Transaction.statement_id == stmt.id))).scalars().all()
+    res_txns = (
+        (await db_session.execute(select(Transaction).where(Transaction.statement_id == stmt.id)))
+        .scalars()
+        .all()
+    )
     assert len(res_txns) == 2
 
     # 5. Call DELETE /api/statements/{stmt.id}
@@ -179,16 +184,34 @@ async def test_statement_cascade_deletion(client: AsyncClient, db_session: Async
     assert del_res.status_code == 204
 
     # 6. Verify statement, transactions, insights, and jobs are all deleted
-    chk_stmt = (await db_session.execute(select(Statement).where(Statement.id == stmt.id))).scalar_one_or_none()
+    chk_stmt = (
+        await db_session.execute(select(Statement).where(Statement.id == stmt.id))
+    ).scalar_one_or_none()
     assert chk_stmt is None
 
-    chk_txns = (await db_session.execute(select(Transaction).where(Transaction.statement_id == stmt.id))).scalars().all()
+    chk_txns = (
+        (await db_session.execute(select(Transaction).where(Transaction.statement_id == stmt.id)))
+        .scalars()
+        .all()
+    )
     assert len(chk_txns) == 0
 
-    chk_insights = (await db_session.execute(select(Insight).where(Insight.statement_id == stmt.id))).scalars().all()
+    chk_insights = (
+        (await db_session.execute(select(Insight).where(Insight.statement_id == stmt.id)))
+        .scalars()
+        .all()
+    )
     assert len(chk_insights) == 0
 
-    chk_jobs = (await db_session.execute(select(ProcessingJob).where(ProcessingJob.statement_id == stmt.id))).scalars().all()
+    chk_jobs = (
+        (
+            await db_session.execute(
+                select(ProcessingJob).where(ProcessingJob.statement_id == stmt.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
     assert len(chk_jobs) == 0
 
 

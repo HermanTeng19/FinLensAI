@@ -1,7 +1,8 @@
-from decimal import Decimal
 import math
-from typing import Sequence, List, Dict
 from collections import defaultdict
+from collections.abc import Sequence
+from decimal import Decimal
+
 from app.models.models import Transaction
 from app.schemas.schemas import UnusualTransaction
 
@@ -9,19 +10,19 @@ from app.schemas.schemas import UnusualTransaction
 def detect_unusual_transactions(
     transactions: Sequence[Transaction],
     large_expense_threshold: Decimal = Decimal("500.00"),
-) -> List[UnusualTransaction]:
+) -> list[UnusualTransaction]:
     """
     Detects potential duplicate charges, statistical category outliers,
     and exceptionally large expenses.
     """
-    anomalies: List[UnusualTransaction] = []
+    anomalies: list[UnusualTransaction] = []
     seen_ids = set()
 
     # Filter only expenses
     expenses = [t for t in transactions if Decimal(str(t.amount)) < 0]
 
     # --- 1. Potential Duplicate Charges (Within 48 hours, same merchant & exact amount) ---
-    merchant_map: Dict[str, List[Transaction]] = defaultdict(list)
+    merchant_map: dict[str, list[Transaction]] = defaultdict(list)
     for t in expenses:
         m = (t.merchant or "").strip()
         if m:
@@ -52,7 +53,7 @@ def detect_unusual_transactions(
                     )
 
     # --- 2. Category Statistical Outliers ---
-    cat_expenses: Dict[str, List[Transaction]] = defaultdict(list)
+    cat_expenses: dict[str, list[Transaction]] = defaultdict(list)
     for t in expenses:
         cat_expenses[t.category].append(t)
 
@@ -70,14 +71,23 @@ def detect_unusual_transactions(
         for t in txns:
             amt = float(abs(Decimal(str(t.amount))))
             is_outlier = False
-            if stddev > 1.0 and amt > (mean + 2.0 * stddev):
-                is_outlier = True
-            elif median > 0 and amt > 3.0 * median and (amt - median) >= 50.0:
+            if (
+                stddev > 1.0
+                and amt > (mean + 2.0 * stddev)
+                or median > 0
+                and amt > 3.0 * median
+                and (amt - median) >= 50.0
+            ):
                 is_outlier = True
 
             if is_outlier and t.id not in seen_ids:
                 seen_ids.add(t.id)
-                severity = "high" if (median > 0 and amt > 5.0 * median) or (stddev > 1.0 and amt > mean + 3.0 * stddev) else "medium"
+                severity = (
+                    "high"
+                    if (median > 0 and amt > 5.0 * median)
+                    or (stddev > 1.0 and amt > mean + 3.0 * stddev)
+                    else "medium"
+                )
                 anomalies.append(
                     UnusualTransaction(
                         transaction_id=t.id,

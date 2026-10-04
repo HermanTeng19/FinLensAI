@@ -5,10 +5,9 @@ Provides:
 - GET /api/data/privacy-info: Returns privacy architectural status, in-memory processing guarantees, and audit details.
 """
 
-from datetime import datetime, timezone
-import uuid
-from typing import Any, Dict
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import UTC, datetime
+
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,7 +25,7 @@ class DataResetAuditResponse(BaseModel):
     deleted_insights: int
     deleted_jobs: int
     message: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class PrivacyPolicyInfoResponse(BaseModel):
@@ -68,7 +67,7 @@ async def execute_atomic_purge(db: AsyncSession) -> DataResetAuditResponse:
         deleted_insights=insight_count,
         deleted_jobs=job_count,
         message="All financial records, transactions, AI insights, and jobs have been permanently and irreversibly purged.",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
     )
 
 

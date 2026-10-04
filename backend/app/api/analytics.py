@@ -1,39 +1,40 @@
 import uuid
-from decimal import Decimal
-from typing import List, Optional
 from datetime import date
-from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from decimal import Decimal
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
 from app.models.models import Transaction
 from app.schemas.schemas import (
-    FinancialSummary,
     CategorySpending,
+    FinancialSummary,
     MonthlyTrend,
-    RecurringItem,
-    UnusualTransaction,
     PeriodComparison,
+    RecurringItem,
     TransactionResponse,
+    UnusualTransaction,
 )
+from app.services.analytics.anomalies import detect_unusual_transactions
 from app.services.analytics.engine import (
-    calculate_summary,
     calculate_category_breakdown,
     calculate_monthly_trends,
+    calculate_summary,
     compare_periods,
     get_top_transactions,
 )
 from app.services.analytics.recurring import detect_recurring_transactions
-from app.services.analytics.anomalies import detect_unusual_transactions
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 
 @router.get("/summary", response_model=FinancialSummary)
 async def get_financial_summary(
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
-    statement_id: Optional[uuid.UUID] = Query(None),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    statement_id: uuid.UUID | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     query = select(Transaction)
@@ -49,11 +50,11 @@ async def get_financial_summary(
     return calculate_summary(txns)
 
 
-@router.get("/categories", response_model=List[CategorySpending])
+@router.get("/categories", response_model=list[CategorySpending])
 async def get_category_spending(
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
-    statement_id: Optional[uuid.UUID] = Query(None),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    statement_id: uuid.UUID | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     query = select(Transaction)
@@ -69,9 +70,9 @@ async def get_category_spending(
     return calculate_category_breakdown(txns)
 
 
-@router.get("/monthly-trends", response_model=List[MonthlyTrend])
+@router.get("/monthly-trends", response_model=list[MonthlyTrend])
 async def get_monthly_trends(
-    statement_id: Optional[uuid.UUID] = Query(None),
+    statement_id: uuid.UUID | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     query = select(Transaction)
@@ -83,9 +84,9 @@ async def get_monthly_trends(
     return calculate_monthly_trends(txns)
 
 
-@router.get("/recurring", response_model=List[RecurringItem])
+@router.get("/recurring", response_model=list[RecurringItem])
 async def get_recurring_transactions(
-    statement_id: Optional[uuid.UUID] = Query(None),
+    statement_id: uuid.UUID | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     query = select(Transaction)
@@ -97,10 +98,12 @@ async def get_recurring_transactions(
     return detect_recurring_transactions(txns)
 
 
-@router.get("/unusual", response_model=List[UnusualTransaction])
+@router.get("/unusual", response_model=list[UnusualTransaction])
 async def get_unusual_transactions(
-    statement_id: Optional[uuid.UUID] = Query(None),
-    threshold: Optional[Decimal] = Query(None, description="Optional custom threshold for large expenses"),
+    statement_id: uuid.UUID | None = Query(None),
+    threshold: Decimal | None = Query(
+        None, description="Optional custom threshold for large expenses"
+    ),
     db: AsyncSession = Depends(get_db),
 ):
     query = select(Transaction)
@@ -117,9 +120,9 @@ async def get_unusual_transactions(
     return detect_unusual_transactions(txns, **kwargs)
 
 
-@router.get("/top", response_model=List[TransactionResponse])
+@router.get("/top", response_model=list[TransactionResponse])
 async def get_top_spending_transactions(
-    statement_id: Optional[uuid.UUID] = Query(None),
+    statement_id: uuid.UUID | None = Query(None),
     limit: int = Query(10, ge=1, le=100),
     txn_type: str = Query("expense", description="'expense' or 'income'"),
     db: AsyncSession = Depends(get_db),
@@ -139,7 +142,7 @@ async def get_period_comparison(
     curr_end: date = Query(...),
     prev_start: date = Query(...),
     prev_end: date = Query(...),
-    statement_id: Optional[uuid.UUID] = Query(None),
+    statement_id: uuid.UUID | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     if curr_start > curr_end or prev_start > prev_end:
@@ -148,8 +151,12 @@ async def get_period_comparison(
             detail="Start date cannot be after end date.",
         )
 
-    curr_query = select(Transaction).where(Transaction.date >= curr_start, Transaction.date <= curr_end)
-    prev_query = select(Transaction).where(Transaction.date >= prev_start, Transaction.date <= prev_end)
+    curr_query = select(Transaction).where(
+        Transaction.date >= curr_start, Transaction.date <= curr_end
+    )
+    prev_query = select(Transaction).where(
+        Transaction.date >= prev_start, Transaction.date <= prev_end
+    )
     if statement_id:
         curr_query = curr_query.where(Transaction.statement_id == statement_id)
         prev_query = prev_query.where(Transaction.statement_id == statement_id)
@@ -161,4 +168,3 @@ async def get_period_comparison(
     prev_txns = prev_res.scalars().all()
 
     return compare_periods(curr_txns, prev_txns)
-

@@ -1,10 +1,10 @@
 import csv
 import io
 import re
-from datetime import datetime, date
-from decimal import Decimal, InvalidOperation
-from typing import List, Optional, Tuple
 from dataclasses import dataclass
+from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
+
 from pypdf import PdfReader
 
 
@@ -14,7 +14,7 @@ class ExtractedTransactionCandidate:
     original_description: str
     amount: Decimal
     currency: str = "CAD"
-    source_page: Optional[int] = None
+    source_page: int | None = None
 
 
 class DateParser:
@@ -31,7 +31,7 @@ class DateParser:
     ]
 
     @classmethod
-    def parse(cls, date_str: str, default_year: int = 2026) -> Optional[date]:
+    def parse(cls, date_str: str, default_year: int = 2026) -> date | None:
         cleaned = date_str.strip()
         for fmt in cls.DATE_PATTERNS:
             try:
@@ -53,7 +53,7 @@ class DateParser:
 
 class AmountParser:
     @classmethod
-    def parse(cls, amount_str: str) -> Optional[Decimal]:
+    def parse(cls, amount_str: str) -> Decimal | None:
         cleaned = amount_str.strip()
         if not cleaned:
             return None
@@ -91,14 +91,21 @@ class AmountParser:
 
 
 class CSVParser:
-    DATE_HEADERS = {"date", "trans date", "posting date", "transaction date", "txn date", "post date"}
+    DATE_HEADERS = {
+        "date",
+        "trans date",
+        "posting date",
+        "transaction date",
+        "txn date",
+        "post date",
+    }
     DESC_HEADERS = {"description", "desc", "memo", "details", "payee", "narrative", "transaction"}
     AMOUNT_HEADERS = {"amount", "total", "net amount", "value"}
     DEBIT_HEADERS = {"debit", "withdrawal", "withdrawals", "charge", "spent"}
     CREDIT_HEADERS = {"credit", "deposit", "deposits", "payment", "received"}
 
     @classmethod
-    def parse(cls, content: bytes) -> List[ExtractedTransactionCandidate]:
+    def parse(cls, content: bytes) -> list[ExtractedTransactionCandidate]:
         text_stream = io.StringIO(content.decode("utf-8-sig", errors="replace"))
         reader = csv.reader(text_stream)
 
@@ -134,7 +141,7 @@ class CSVParser:
                         col_map["credit"] = col_i
                 break
 
-        candidates: List[ExtractedTransactionCandidate] = []
+        candidates: list[ExtractedTransactionCandidate] = []
 
         data_rows = rows[header_idx + 1 :] if header_idx != -1 else rows
 
@@ -142,9 +149,9 @@ class CSVParser:
             if len(row) < 2:
                 continue
 
-            parsed_date: Optional[date] = None
+            parsed_date: date | None = None
             description: str = ""
-            amount: Optional[Decimal] = None
+            amount: Decimal | None = None
 
             if "date" in col_map and col_map["date"] < len(row):
                 parsed_date = DateParser.parse(row[col_map["date"]])
@@ -165,9 +172,9 @@ class CSVParser:
                     else None
                 )
 
-                if debit_val and debit_val != Decimal("0"):
+                if debit_val and debit_val != Decimal(0):
                     amount = -abs(debit_val)
-                elif credit_val and credit_val != Decimal("0"):
+                elif credit_val and credit_val != Decimal(0):
                     amount = abs(credit_val)
 
             # Fallback heuristic if no header row detected
@@ -210,10 +217,10 @@ class PDFParser:
     )
 
     @classmethod
-    def parse(cls, content: bytes) -> List[ExtractedTransactionCandidate]:
+    def parse(cls, content: bytes) -> list[ExtractedTransactionCandidate]:
         stream = io.BytesIO(content)
         reader = PdfReader(stream)
-        candidates: List[ExtractedTransactionCandidate] = []
+        candidates: list[ExtractedTransactionCandidate] = []
 
         for page_num, page in enumerate(reader.pages, start=1):
             text = page.extract_text() or ""

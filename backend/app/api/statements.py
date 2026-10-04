@@ -1,10 +1,19 @@
 import hashlib
 import uuid
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, status
-from sqlalchemy.ext.asyncio import AsyncSession
+
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    UploadFile,
+    status,
+)
 from sqlalchemy import select
-from app.core.database import get_db, AsyncSessionLocal
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import AsyncSessionLocal, get_db
 from app.models.models import Statement
 from app.schemas.schemas import StatementResponse
 from app.services.document_ai.pipeline import process_statement_pipeline
@@ -23,7 +32,7 @@ async def _run_background_pipeline(statement_id: uuid.UUID, content: bytes, file
             pass
 
 
-@router.get("", response_model=List[StatementResponse])
+@router.get("", response_model=list[StatementResponse])
 async def list_statements(
     skip: int = 0,
     limit: int = 50,
@@ -111,4 +120,3 @@ async def delete_statement(
 
     await db.delete(statement)  # Triggers cascade deletion of transactions & jobs
     await db.commit()
-    return None

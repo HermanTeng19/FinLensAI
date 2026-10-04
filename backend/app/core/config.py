@@ -1,4 +1,3 @@
-from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,10 +15,12 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "dev-secret-key-change-in-production"
 
     # Database Configuration
-    DATABASE_URL: str = "postgresql+asyncpg://finlens_user:finlens_password@localhost:5432/finlens_db"
+    DATABASE_URL: str = (
+        "postgresql+asyncpg://finlens_user:finlens_password@localhost:5432/finlens_db"
+    )
 
     # CORS configuration
-    CORS_ORIGINS: List[str] = ["*"]
+    CORS_ORIGINS: list[str] = ["*"]
 
 
 settings = Settings()

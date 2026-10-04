@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import Tuple, Optional
 
 
 class Categorizer:
@@ -7,60 +6,116 @@ class Categorizer:
         # Income Rules
         ("Income", "Salary", ["PAYROLL", "SALARY", "DIRECT DEP", "EMPLOYER", "WAGES"]),
         ("Income", "Investment", ["DIVIDEND", "INTEREST PAID", "CASHBACK"]),
-        
         # Transfer Rules
         ("Transfer", "e-Transfer", ["E-TRANSFER", "INTERAC", "EMAIL TRF"]),
         ("Transfer", "Card Payment", ["PAYMENT - THANK YOU", "CREDIT CARD PAYMENT", "AUTOPAY"]),
-        
+        # Food Delivery (Checked before Rideshare so UBER EATS matches before UBER)
+        ("Food", "Food Delivery", ["UBER EATS", "DOORDASH", "SKIPTHEDISHES"]),
+        # Transportation
+        (
+            "Transportation",
+            "Public Transit",
+            ["TRANSIT", "METRO PASS", "PRESTO", "COMPASS", "BUS", "TRAIN", "FERRY"],
+        ),
+        ("Transportation", "Rideshare", ["UBER", "LYFT", "TAXI", "CAB"]),
+        (
+            "Transportation",
+            "Gas & Fuel",
+            ["SHELL", "CHEVRON", "ESSO", "PETRO-CANADA", "GAS STATION", "EXXON"],
+        ),
+        ("Transportation", "Parking", ["PARKING", "IMPARK", "EASYPARK"]),
         # Food & Dining
         ("Food", "Coffee & Cafe", ["TIM HORTONS", "STARBUCKS", "CAFE", "COFFEE", "BAKERY"]),
-        ("Food", "Restaurants", ["RESTAURANT", "BISTRO", "GRILL", "PIZZA", "BURGER", "SUSHI", "KEG"]),
-        ("Food", "Food Delivery", ["UBER EATS", "DOORDASH", "SKIPTHEDISHES"]),
-        ("Food", "Groceries", ["LOBLAWS", "SAFEWAY", "METRO", "SOBEYS", "WHOLE FOODS", "TRADER JOE", "SUPERMARKET", "GROCERY"]),
-        
-        # Transportation
-        ("Transportation", "Rideshare", ["UBER", "LYFT", "TAXI", "CAB"]),
-        ("Transportation", "Gas & Fuel", ["SHELL", "CHEVRON", "ESSO", "PETRO-CANADA", "GAS STATION", "EXXON"]),
-        ("Transportation", "Public Transit", ["TRANSIT", "METRO", "BUS", "SUBWAY", "TRAIN", "FERRY"]),
-        ("Transportation", "Parking", ["PARKING", "IMPARK", "EASYPARK"]),
-        
+        (
+            "Food",
+            "Restaurants",
+            [
+                "MCDONALD",
+                "SUBWAY",
+                "KFC",
+                "CHIPOTLE",
+                "RESTAURANT",
+                "BISTRO",
+                "GRILL",
+                "PIZZA",
+                "BURGER",
+                "SUSHI",
+                "KEG",
+            ],
+        ),
+        (
+            "Food",
+            "Groceries",
+            [
+                "LOBLAWS",
+                "SAFEWAY",
+                "METRO",
+                "SOBEYS",
+                "WHOLE FOODS",
+                "TRADER JOE",
+                "SUPERMARKET",
+                "GROCERY",
+            ],
+        ),
         # Shopping
         ("Shopping", "Online Shopping", ["AMAZON", "EBAY", "ALIEXPRESS"]),
         ("Shopping", "General Retail", ["WALMART", "COSTCO", "TARGET"]),
         ("Shopping", "Electronics", ["BEST BUY", "APPLE", "MICROSOFT"]),
         ("Shopping", "Home Goods", ["HOME DEPOT", "IKEA", "LOWE'S", "BED BATH"]),
-        
+        (
+            "Shopping",
+            "Software & Subscriptions",
+            ["OPENAI", "CHATGPT", "GITHUB", "AWS", "ADOBE", "CANVA"],
+        ),
         # Entertainment
-        ("Entertainment", "Streaming", ["NETFLIX", "SPOTIFY", "DISNEY+", "YOUTUBE", "APPLE TV", "PRIME VIDEO"]),
+        (
+            "Entertainment",
+            "Streaming",
+            ["NETFLIX", "SPOTIFY", "DISNEY+", "YOUTUBE", "APPLE TV", "PRIME VIDEO"],
+        ),
         ("Entertainment", "Gaming", ["STEAM", "PLAYSTATION", "XBOX", "NINTENDO"]),
         ("Entertainment", "Events & Movies", ["CINEMA", "THEATRE", "CONCERT", "TICKETMASTER"]),
-        
         # Utilities
-        ("Utilities", "Electricity & Gas", ["HYDRO", "BC HYDRO", "TORONTO HYDRO", "ENBRIDGE", "POWER", "ELECTRIC"]),
-        ("Utilities", "Internet & Mobile", ["TELUS", "ROGERS", "BELL", "FIDO", "KUDOO", "VERIZON", "AT&T", "INTERNET"]),
-        
+        (
+            "Utilities",
+            "Electricity & Gas",
+            ["HYDRO", "BC HYDRO", "TORONTO HYDRO", "ENBRIDGE", "POWER", "ELECTRIC"],
+        ),
+        (
+            "Utilities",
+            "Internet & Mobile",
+            ["TELUS", "ROGERS", "BELL", "FIDO", "KUDOO", "VERIZON", "AT&T", "INTERNET"],
+        ),
         # Healthcare
         ("Healthcare", "Pharmacy", ["PHARMACY", "SHOPPERS DRUG", "REXALL", "CVS", "WALGREENS"]),
         ("Healthcare", "Medical & Dental", ["DENTAL", "CLINIC", "DOCTOR", "HOSPITAL", "OPTOMETRY"]),
-        
         # Housing
         ("Housing", "Rent & Mortgage", ["RENT", "MORTGAGE", "CONDO FEE", "HOA"]),
-        
         # Travel
-        ("Travel", "Flights", ["AIR CANADA", "WESTJET", "UNITED AIRLINES", "DELTA", "AIRLINE", "FLIGHT"]),
+        (
+            "Travel",
+            "Flights",
+            ["AIR CANADA", "WESTJET", "UNITED AIRLINES", "DELTA", "AIRLINE", "FLIGHT"],
+        ),
         ("Travel", "Lodging", ["HOTEL", "AIRBNB", "MARRIOTT", "HILTON"]),
-        
         # Education
-        ("Education", "Tuition & Courses", ["UNIVERSITY", "COLLEGE", "TUITION", "COURSERA", "UDEMY"]),
-        
+        (
+            "Education",
+            "Tuition & Courses",
+            ["UNIVERSITY", "COLLEGE", "TUITION", "COURSERA", "UDEMY"],
+        ),
         # Financial
-        ("Financial", "Bank Fees", ["SERVICE CHARGE", "MONTHLY FEE", "OVERDRAFT", "ATM FEE", "ANNUAL FEE"]),
+        (
+            "Financial",
+            "Bank Fees",
+            ["SERVICE CHARGE", "MONTHLY FEE", "OVERDRAFT", "ATM FEE", "ANNUAL FEE"],
+        ),
     ]
 
     @classmethod
     def classify(
         cls, merchant: str, original_description: str, amount: Decimal
-    ) -> Tuple[str, Optional[str], float, str]:
+    ) -> tuple[str, str | None, float, str]:
         """
         Classifies transaction into (category, subcategory, confidence, transaction_type).
         """

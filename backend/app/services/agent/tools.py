@@ -1,23 +1,32 @@
 import uuid
-from decimal import Decimal
 from datetime import date, datetime
-from typing import Optional, List, Dict, Any
+from decimal import Decimal
+from typing import Any
+
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_
 
 from app.models.models import Transaction
+from app.services.analytics.anomalies import (
+    detect_unusual_transactions as engine_detect_anomalies,
+)
 from app.services.analytics.engine import (
-    calculate_summary,
     calculate_category_breakdown,
     calculate_monthly_trends,
+    calculate_summary,
+)
+from app.services.analytics.engine import (
     compare_periods as engine_compare_periods,
+)
+from app.services.analytics.engine import (
     get_top_transactions as engine_get_top_transactions,
 )
-from app.services.analytics.recurring import detect_recurring_transactions as engine_detect_recurring
-from app.services.analytics.anomalies import detect_unusual_transactions as engine_detect_anomalies
+from app.services.analytics.recurring import (
+    detect_recurring_transactions as engine_detect_recurring,
+)
 
 
-def _parse_date(val: Any) -> Optional[date]:
+def _parse_date(val: Any) -> date | None:
     if isinstance(val, date):
         return val
     if isinstance(val, str) and val.strip():
@@ -28,7 +37,7 @@ def _parse_date(val: Any) -> Optional[date]:
     return None
 
 
-def _format_txn(t: Transaction) -> Dict[str, Any]:
+def _format_txn(t: Transaction) -> dict[str, Any]:
     return {
         "id": str(t.id),
         "date": t.date.isoformat(),
@@ -47,14 +56,14 @@ def _format_txn(t: Transaction) -> Dict[str, Any]:
 # ==========================================
 async def search_transactions(
     db: AsyncSession,
-    query: Optional[str] = None,
-    category: Optional[str] = None,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    min_amount: Optional[float] = None,
-    max_amount: Optional[float] = None,
+    query: str | None = None,
+    category: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    min_amount: float | None = None,
+    max_amount: float | None = None,
     limit: int = 20,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Search and filter user transactions by keyword, category, date range, or amount range.
     """
@@ -99,7 +108,7 @@ async def search_transactions(
 async def get_transaction_details(
     db: AsyncSession,
     transaction_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Retrieve comprehensive details for a specific transaction by its ID.
     """
@@ -127,10 +136,10 @@ async def get_transaction_details(
 # ==========================================
 async def get_spending_by_category(
     db: AsyncSession,
-    category: Optional[str] = None,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-) -> Dict[str, Any]:
+    category: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> dict[str, Any]:
     """
     Calculate deterministic total spending and breakdown by category over a date range.
     """
@@ -187,7 +196,7 @@ async def compare_periods(
     curr_end: str,
     prev_start: str,
     prev_end: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Compare financial metrics and category spending between two distinct time periods.
     """
@@ -234,9 +243,9 @@ async def get_top_transactions(
     db: AsyncSession,
     limit: int = 5,
     txn_type: str = "expense",
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> list[dict[str, Any]]:
     """
     Retrieve the largest transactions (highest spending expenses or highest income).
     """
@@ -259,7 +268,7 @@ async def get_top_transactions(
 # ==========================================
 async def detect_recurring_transactions(
     db: AsyncSession,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Analyze all transaction history to detect recurring subscriptions, bills, payroll, and periodic charges.
     """
@@ -274,7 +283,9 @@ async def detect_recurring_transactions(
             "frequency": item.frequency,
             "expected_amount": str(item.expected_amount),
             "last_date": item.last_date.isoformat(),
-            "next_expected_date": item.next_expected_date.isoformat() if item.next_expected_date else None,
+            "next_expected_date": item.next_expected_date.isoformat()
+            if item.next_expected_date
+            else None,
             "occurrence_count": item.occurrence_count,
             "confidence": item.confidence,
             "is_subscription": item.is_subscription,
@@ -288,8 +299,8 @@ async def detect_recurring_transactions(
 # ==========================================
 async def detect_unusual_transactions(
     db: AsyncSession,
-    threshold: Optional[float] = None,
-) -> List[Dict[str, Any]]:
+    threshold: float | None = None,
+) -> list[dict[str, Any]]:
     """
     Detect financial anomalies including duplicate charges within 48h, statistical category outliers, and large spikes.
     """
@@ -322,8 +333,8 @@ async def detect_unusual_transactions(
 # ==========================================
 async def get_monthly_summary(
     db: AsyncSession,
-    month: Optional[str] = None,
-) -> Dict[str, Any]:
+    month: str | None = None,
+) -> dict[str, Any]:
     """
     Get authoritative total income, expenses, and net cash flow for a specific month (e.g. '2026-09') or overall.
     """
@@ -390,13 +401,25 @@ TOOL_DEFINITIONS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "Search keyword for merchant or description."},
-                    "category": {"type": "string", "description": "Category name filter (e.g. 'Food', 'Shopping')."},
-                    "start_date": {"type": "string", "description": "Start date in YYYY-MM-DD format."},
+                    "query": {
+                        "type": "string",
+                        "description": "Search keyword for merchant or description.",
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "Category name filter (e.g. 'Food', 'Shopping').",
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "description": "Start date in YYYY-MM-DD format.",
+                    },
                     "end_date": {"type": "string", "description": "End date in YYYY-MM-DD format."},
                     "min_amount": {"type": "number", "description": "Minimum amount filter."},
                     "max_amount": {"type": "number", "description": "Maximum amount filter."},
-                    "limit": {"type": "integer", "description": "Max number of transactions to return (default 20)."},
+                    "limit": {
+                        "type": "integer",
+                        "description": "Max number of transactions to return (default 20).",
+                    },
                 },
             },
         },
@@ -409,7 +432,10 @@ TOOL_DEFINITIONS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "transaction_id": {"type": "string", "description": "The UUID of the transaction."},
+                    "transaction_id": {
+                        "type": "string",
+                        "description": "The UUID of the transaction.",
+                    },
                 },
                 "required": ["transaction_id"],
             },
@@ -423,8 +449,14 @@ TOOL_DEFINITIONS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "category": {"type": "string", "description": "Optional category name to filter (e.g. 'Food', 'Shopping', 'Travel')."},
-                    "start_date": {"type": "string", "description": "Start date in YYYY-MM-DD format."},
+                    "category": {
+                        "type": "string",
+                        "description": "Optional category name to filter (e.g. 'Food', 'Shopping', 'Travel').",
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "description": "Start date in YYYY-MM-DD format.",
+                    },
                     "end_date": {"type": "string", "description": "End date in YYYY-MM-DD format."},
                 },
             },
@@ -438,10 +470,22 @@ TOOL_DEFINITIONS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "curr_start": {"type": "string", "description": "Current period start date (YYYY-MM-DD)."},
-                    "curr_end": {"type": "string", "description": "Current period end date (YYYY-MM-DD)."},
-                    "prev_start": {"type": "string", "description": "Previous period start date (YYYY-MM-DD)."},
-                    "prev_end": {"type": "string", "description": "Previous period end date (YYYY-MM-DD)."},
+                    "curr_start": {
+                        "type": "string",
+                        "description": "Current period start date (YYYY-MM-DD).",
+                    },
+                    "curr_end": {
+                        "type": "string",
+                        "description": "Current period end date (YYYY-MM-DD).",
+                    },
+                    "prev_start": {
+                        "type": "string",
+                        "description": "Previous period start date (YYYY-MM-DD).",
+                    },
+                    "prev_end": {
+                        "type": "string",
+                        "description": "Previous period end date (YYYY-MM-DD).",
+                    },
                 },
                 "required": ["curr_start", "curr_end", "prev_start", "prev_end"],
             },
@@ -455,9 +499,19 @@ TOOL_DEFINITIONS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "limit": {"type": "integer", "description": "Number of transactions to return (default 5)."},
-                    "txn_type": {"type": "string", "enum": ["expense", "income"], "description": "'expense' or 'income'."},
-                    "start_date": {"type": "string", "description": "Start date in YYYY-MM-DD format."},
+                    "limit": {
+                        "type": "integer",
+                        "description": "Number of transactions to return (default 5).",
+                    },
+                    "txn_type": {
+                        "type": "string",
+                        "enum": ["expense", "income"],
+                        "description": "'expense' or 'income'.",
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "description": "Start date in YYYY-MM-DD format.",
+                    },
                     "end_date": {"type": "string", "description": "End date in YYYY-MM-DD format."},
                 },
             },
@@ -479,7 +533,10 @@ TOOL_DEFINITIONS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "threshold": {"type": "number", "description": "Optional custom dollar threshold for large expenses (default $500)."},
+                    "threshold": {
+                        "type": "number",
+                        "description": "Optional custom dollar threshold for large expenses (default $500).",
+                    },
                 },
             },
         },
@@ -492,7 +549,10 @@ TOOL_DEFINITIONS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "month": {"type": "string", "description": "Specific month in YYYY-MM format (e.g. '2026-09')."},
+                    "month": {
+                        "type": "string",
+                        "description": "Specific month in YYYY-MM format (e.g. '2026-09').",
+                    },
                 },
             },
         },

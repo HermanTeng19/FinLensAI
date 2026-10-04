@@ -1,0 +1,113 @@
+name: FinLens AI CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # 1. Backend CI: Linting, Tests, Coverage & AI Benchmarks
+  # ============================================================================
+  backend-ci:
+    name: Backend CI (Python 3.12 & PostgreSQL)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: finlens_user
+          POSTGRES_PASSWORD: finlens_password
+          POSTGRES_DB: finlens_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install uv and Dependencies
+        working-directory: backend
+        run: |
+          pip install --upgrade pip uv
+          uv pip install --system -e ".[dev]"
+
+      - name: Ruff Lint and Formatting Checks
+        working-directory: backend
+        run: |
+          ruff check app tests
+          ruff format --check app tests
+
+      - name: Run Pytest Suite with Coverage
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql+asyncpg://finlens_user:finlens_password@localhost:5432/finlens_test_db
+          SECRET_KEY: test-secret-key-for-ci-pipeline
+          ENVIRONMENT: test
+        run: |
+          pytest tests/ --cov=app --cov-report=term-missing --cov-report=xml --cov-fail-under=80
+
+      - name: Run AI Engine Evaluation Benchmarks
+        working-directory: backend
+        run: |
+          python -m app.evaluation.runner
+
+      - name: Upload Coverage Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage-report
+          path: backend/coverage.xml
+          retention-days: 7
+
+  # ============================================================================
+  # 2. Apple Multiplatform CI: Swift Package Tests & Xcode Builds
+  # ============================================================================
+  apple-ci:
+    name: Apple Multiplatform CI (macOS, iOS & Swift 6)
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Show Xcode Version
+        run: xcodebuild -version
+
+      - name: Run FinLensCore Swift Package Tests
+        run: |
+          swift test --package-path apple/FinLensCore
+
+      - name: Build macOS Application Target
+        run: |
+          xcodebuild build \
+            -project apple/FinLens/FinLens.xcodeproj \
+            -scheme FinLens_macOS \
+            -destination 'platform=macOS' \
+            -quiet
+
+      - name: Build iOS Application Target (Simulator)
+        run: |
+          xcodebuild build \
+            -project apple/FinLens/FinLens.xcodeproj \
+            -scheme FinLens_iOS \
+            -destination 'generic/platform=iOS Simulator' \
+            -quiet

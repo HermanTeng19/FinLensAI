@@ -9,7 +9,7 @@ Provides:
 
 import logging
 import re
-from typing import Any
+
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
@@ -25,9 +25,7 @@ RE_CREDIT_CARD = re.compile(
 )
 
 # Canadian SIN (3-3-3 or 9 digits) and US SSN (3-2-4)
-RE_SSN_SIN = re.compile(
-    r"\b(?:\d{3}[ -]\d{2}[ -]\d{4}|\d{3}[ -]\d{3}[ -]\d{3})\b"
-)
+RE_SSN_SIN = re.compile(r"\b(?:\d{3}[ -]\d{2}[ -]\d{4}|\d{3}[ -]\d{3}[ -]\d{3})\b")
 
 # Bank Account Numbers & Transit numbers when preceded by common keywords
 RE_BANK_ACCOUNT = re.compile(
@@ -88,7 +86,9 @@ class PrivacyHeadersMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # Zero-retention caching: financial records, analysis, and insights MUST NOT be cached
-        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0, private"
+        response.headers["Cache-Control"] = (
+            "no-store, no-cache, must-revalidate, max-age=0, private"
+        )
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
 
@@ -97,6 +97,8 @@ class PrivacyHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=(), payment=()"
+        response.headers["Permissions-Policy"] = (
+            "geolocation=(), camera=(), microphone=(), payment=()"
+        )
 
         return response

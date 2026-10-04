@@ -1,12 +1,16 @@
-import pytest
-import io
-from decimal import Decimal
 from datetime import date
+from decimal import Decimal
+
+import pytest
 from httpx import AsyncClient
-from pypdf import PdfWriter
-from app.services.document_ai.merchant_normalizer import MerchantNormalizer
+
 from app.services.document_ai.categorizer import Categorizer
-from app.services.document_ai.parser import CSVParser, PDFParser, DateParser, AmountParser
+from app.services.document_ai.merchant_normalizer import MerchantNormalizer
+from app.services.document_ai.parser import (
+    AmountParser,
+    CSVParser,
+    DateParser,
+)
 
 
 def test_merchant_normalizer():
@@ -30,7 +34,9 @@ def test_merchant_normalizer():
 
 def test_categorizer():
     # Coffee / Food
-    cat, subcat, conf, txn_type = Categorizer.classify("Tim Hortons", "TST* TIM HORTONS #1024", Decimal("-4.50"))
+    cat, subcat, conf, txn_type = Categorizer.classify(
+        "Tim Hortons", "TST* TIM HORTONS #1024", Decimal("-4.50")
+    )
     assert cat == "Food"
     assert subcat == "Coffee & Cafe"
     assert txn_type == "expense"
@@ -41,18 +47,24 @@ def test_categorizer():
     assert txn_type == "expense"
 
     # Utilities
-    cat, subcat, conf, txn_type = Categorizer.classify("Electric Utility", "BC HYDRO PAYMENT", Decimal("-112.40"))
+    cat, subcat, conf, txn_type = Categorizer.classify(
+        "Electric Utility", "BC HYDRO PAYMENT", Decimal("-112.40")
+    )
     assert cat == "Utilities"
     assert txn_type == "expense"
 
     # Income
-    cat, subcat, conf, txn_type = Categorizer.classify("Payroll / Salary", "ACME CORP PAYROLL", Decimal("3500.00"))
+    cat, subcat, conf, txn_type = Categorizer.classify(
+        "Payroll / Salary", "ACME CORP PAYROLL", Decimal("3500.00")
+    )
     assert cat == "Income"
     assert subcat == "Salary"
     assert txn_type == "income"
 
     # Transfer
-    cat, subcat, conf, txn_type = Categorizer.classify("Interac e-Transfer", "INTERAC E-TRANSFER TO JOHN", Decimal("-50.00"))
+    cat, subcat, conf, txn_type = Categorizer.classify(
+        "Interac e-Transfer", "INTERAC E-TRANSFER TO JOHN", Decimal("-50.00")
+    )
     assert cat == "Transfer"
     assert txn_type == "transfer"
 
@@ -71,11 +83,11 @@ def test_amount_and_date_parsing():
 
 def test_csv_parser_dual_columns():
     csv_data = (
-        "Date,Description,Debit,Credit\n"
-        "2026-09-01,RENT PAYMENT,1800.00,\n"
-        "2026-09-05,PAYROLL,,3200.00\n"
-        "2026-09-10,STARBUCKS #442,6.75,\n"
-    ).encode("utf-8")
+        b"Date,Description,Debit,Credit\n"
+        b"2026-09-01,RENT PAYMENT,1800.00,\n"
+        b"2026-09-05,PAYROLL,,3200.00\n"
+        b"2026-09-10,STARBUCKS #442,6.75,\n"
+    )
 
     candidates = CSVParser.parse(csv_data)
     assert len(candidates) == 3
@@ -87,12 +99,12 @@ def test_csv_parser_dual_columns():
 @pytest.mark.asyncio
 async def test_end_to_end_statement_processing_and_analytics(client: AsyncClient):
     csv_data = (
-        "Transaction Date,Description,Amount\n"
-        "2026-09-02,TST* TIM HORTONS #1024,-4.50\n"
-        "2026-09-03,AMZN Mktp CA*9812487,-120.00\n"
-        "2026-09-04,SHELL GAS STATION,-65.00\n"
-        "2026-09-15,EMPLOYER PAYROLL DIRECT DEP,2500.00\n"
-    ).encode("utf-8")
+        b"Transaction Date,Description,Amount\n"
+        b"2026-09-02,TST* TIM HORTONS #1024,-4.50\n"
+        b"2026-09-03,AMZN Mktp CA*9812487,-120.00\n"
+        b"2026-09-04,SHELL GAS STATION,-65.00\n"
+        b"2026-09-15,EMPLOYER PAYROLL DIRECT DEP,2500.00\n"
+    )
 
     files = {"file": ("september_statement.csv", csv_data, "text/csv")}
     upload_res = await client.post("/api/statements/upload?run_sync=true", files=files)

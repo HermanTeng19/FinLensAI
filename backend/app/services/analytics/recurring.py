@@ -1,8 +1,7 @@
-from decimal import Decimal
-from datetime import date, timedelta
-from typing import Sequence, List, Dict
 from collections import defaultdict
-import uuid
+from collections.abc import Sequence
+from datetime import date, timedelta
+from decimal import Decimal
 
 from app.models.models import Transaction
 from app.schemas.schemas import RecurringItem
@@ -69,19 +68,19 @@ def _estimate_next_date(last_date: date, frequency: str, avg_days: float) -> dat
 def detect_recurring_transactions(
     transactions: Sequence[Transaction],
     amount_tolerance: float = 0.08,
-) -> List[RecurringItem]:
+) -> list[RecurringItem]:
     """
     Detects recurring subscriptions, utilities, payroll, and periodic charges
     using deterministic interval and amount tolerance analysis.
     """
     # Group by merchant
-    merchant_txns: Dict[str, List[Transaction]] = defaultdict(list)
+    merchant_txns: dict[str, list[Transaction]] = defaultdict(list)
     for t in transactions:
         m = (t.merchant or "").strip()
         if m:
             merchant_txns[m].append(t)
 
-    recurring_items: List[RecurringItem] = []
+    recurring_items: list[RecurringItem] = []
 
     for merchant, txns in merchant_txns.items():
         if len(txns) < 2:
@@ -91,7 +90,7 @@ def detect_recurring_transactions(
         sorted_txns = sorted(txns, key=lambda x: x.date)
 
         # Check intervals
-        intervals: List[int] = []
+        intervals: list[int] = []
         for i in range(len(sorted_txns) - 1):
             delta_days = (sorted_txns[i + 1].date - sorted_txns[i].date).days
             if delta_days > 0:

@@ -1,8 +1,9 @@
 import uuid
-from datetime import datetime, date, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
-from typing import Optional, List, Any, Dict
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # Health Check
@@ -11,7 +12,7 @@ class HealthResponse(BaseModel):
     environment: str
     project: str
     database: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 # Category Schema
@@ -29,23 +30,25 @@ class TransactionBase(BaseModel):
     date: date
     merchant: str
     original_description: str
-    amount: Decimal = Field(..., description="Deterministic Decimal amount. Negative for expense, positive for income.")
+    amount: Decimal = Field(
+        ..., description="Deterministic Decimal amount. Negative for expense, positive for income."
+    )
     currency: str = "CAD"
     transaction_type: str = Field(..., description="'expense', 'income', or 'transfer'")
     category: str
-    subcategory: Optional[str] = None
+    subcategory: str | None = None
     confidence: float = 1.0
-    source_page: Optional[int] = None
+    source_page: int | None = None
 
 
 class TransactionCreate(TransactionBase):
-    statement_id: Optional[uuid.UUID] = None
-    user_id: Optional[uuid.UUID] = None
+    statement_id: uuid.UUID | None = None
+    user_id: uuid.UUID | None = None
 
 
 class TransactionResponse(TransactionBase):
     id: uuid.UUID
-    statement_id: Optional[uuid.UUID] = None
+    statement_id: uuid.UUID | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -56,8 +59,8 @@ class StatementBase(BaseModel):
     filename: str
     file_format: str
     status: str = "pending"
-    period_start: Optional[date] = None
-    period_end: Optional[date] = None
+    period_start: date | None = None
+    period_end: date | None = None
     total_transactions: int = 0
 
 
@@ -97,11 +100,11 @@ class RecurringItem(BaseModel):
     frequency: str  # weekly, bi-weekly, monthly, annual
     expected_amount: Decimal
     last_date: date
-    next_expected_date: Optional[date] = None
+    next_expected_date: date | None = None
     occurrence_count: int
     confidence: float
     is_subscription: bool = False
-    transaction_ids: List[uuid.UUID] = []
+    transaction_ids: list[uuid.UUID] = []
 
 
 class UnusualTransaction(BaseModel):
@@ -123,13 +126,13 @@ class PeriodComparison(BaseModel):
     current_income: Decimal
     previous_income: Decimal
     delta_income: Decimal
-    top_increased_categories: List[CategorySpending] = []
+    top_increased_categories: list[CategorySpending] = []
 
 
 # Agent & Chat Schemas
 class ToolCallRecord(BaseModel):
     tool_name: str
-    arguments: Dict[str, Any]
+    arguments: dict[str, Any]
     output: Any
 
 
@@ -140,12 +143,12 @@ class ChatMessage(BaseModel):
 
 class AgentQueryRequest(BaseModel):
     message: str
-    history: List[ChatMessage] = []
+    history: list[ChatMessage] = []
 
 
 class AgentQueryResponse(BaseModel):
     response: str
-    tool_calls: List[ToolCallRecord] = []
+    tool_calls: list[ToolCallRecord] = []
     grounded: bool = True
 
 
@@ -160,20 +163,23 @@ class SupportingTransactionSchema(BaseModel):
 
 class InsightCardSchema(BaseModel):
     id: uuid.UUID
-    statement_id: Optional[uuid.UUID] = None
+    statement_id: uuid.UUID | None = None
     insight_type: str = Field(..., description="'warning', 'positive', or 'info'")
-    category: str = Field(..., description="Category like 'spending_spike', 'unusual_transaction', 'subscription', etc.")
+    category: str = Field(
+        ...,
+        description="Category like 'spending_spike', 'unusual_transaction', 'subscription', etc.",
+    )
     title: str
     content: str
     severity: str = Field(default="medium", description="'high', 'medium', or 'low'")
-    metric: Optional[str] = None
-    supporting_transactions: List[SupportingTransactionSchema] = []
-    metadata: Dict[str, Any] = {}
+    metric: str | None = None
+    supporting_transactions: list[SupportingTransactionSchema] = []
+    metadata: dict[str, Any] = {}
     generated_at: datetime
 
 
 class InsightListResponse(BaseModel):
-    insights: List[InsightCardSchema]
+    insights: list[InsightCardSchema]
     total_count: int
     warning_count: int
     positive_count: int
@@ -181,6 +187,4 @@ class InsightListResponse(BaseModel):
 
 
 class GenerateInsightsRequest(BaseModel):
-    statement_id: Optional[uuid.UUID] = None
-
-
+    statement_id: uuid.UUID | None = None

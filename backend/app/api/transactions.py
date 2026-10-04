@@ -1,23 +1,24 @@
 import uuid
-from typing import List, Optional
 from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
 from app.models.models import Transaction
-from app.schemas.schemas import TransactionResponse, TransactionCreate
+from app.schemas.schemas import TransactionCreate, TransactionResponse
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
 
-@router.get("", response_model=List[TransactionResponse])
+@router.get("", response_model=list[TransactionResponse])
 async def list_transactions(
-    statement_id: Optional[uuid.UUID] = Query(None, description="Filter by statement"),
-    category: Optional[str] = Query(None, description="Filter by category"),
-    start_date: Optional[date] = Query(None, description="Start date (inclusive)"),
-    end_date: Optional[date] = Query(None, description="End date (inclusive)"),
-    merchant: Optional[str] = Query(None, description="Search by merchant name"),
+    statement_id: uuid.UUID | None = Query(None, description="Filter by statement"),
+    category: str | None = Query(None, description="Filter by category"),
+    start_date: date | None = Query(None, description="Start date (inclusive)"),
+    end_date: date | None = Query(None, description="End date (inclusive)"),
+    merchant: str | None = Query(None, description="Search by merchant name"),
     skip: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_db),

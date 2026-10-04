@@ -1,6 +1,8 @@
-from typing import List, Dict, Any
+from typing import Any
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
 from app.schemas.schemas import AgentQueryRequest, AgentQueryResponse
 from app.services.agent.agent import query_financial_agent
@@ -25,7 +27,7 @@ async def query_agent(
     )
 
 
-@router.get("/tools", response_model=List[Dict[str, Any]])
+@router.get("/tools", response_model=list[dict[str, Any]])
 async def list_available_tools():
     """
     List all registered deterministic financial tools and their JSON schemas.

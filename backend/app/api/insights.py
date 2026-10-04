@@ -1,21 +1,21 @@
 import uuid
-from typing import Optional
+
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.schemas.schemas import (
-    InsightListResponse,
     GenerateInsightsRequest,
+    InsightListResponse,
 )
-from app.services.insights.engine import get_insights, generate_insights
+from app.services.insights.engine import generate_insights, get_insights
 
 router = APIRouter(prefix="/insights", tags=["AI Insights"])
 
 
 @router.get("", response_model=InsightListResponse)
 async def list_insights(
-    statement_id: Optional[uuid.UUID] = Query(None, description="Filter insights by statement ID"),
+    statement_id: uuid.UUID | None = Query(None, description="Filter insights by statement ID"),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -39,8 +39,8 @@ async def list_insights(
 
 @router.post("/generate", response_model=InsightListResponse, status_code=status.HTTP_200_OK)
 async def trigger_insights_generation(
-    req: Optional[GenerateInsightsRequest] = None,
-    statement_id: Optional[uuid.UUID] = Query(None, description="Query fallback statement ID"),
+    req: GenerateInsightsRequest | None = None,
+    statement_id: uuid.UUID | None = Query(None, description="Query fallback statement ID"),
     db: AsyncSession = Depends(get_db),
 ):
     """

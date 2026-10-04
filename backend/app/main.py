@@ -1,16 +1,18 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.core.database import engine, Base
+
 import app.models.models  # ensure models are registered with Base.metadata
-from app.api.health import router as health_router
-from app.api.statements import router as statements_router
-from app.api.transactions import router as transactions_router
-from app.api.analytics import router as analytics_router
 from app.api.agent import router as agent_router
+from app.api.analytics import router as analytics_router
+from app.api.health import router as health_router
 from app.api.insights import router as insights_router
 from app.api.privacy import router as privacy_router
+from app.api.statements import router as statements_router
+from app.api.transactions import router as transactions_router
+from app.core.config import settings
+from app.core.database import Base, engine
 from app.core.privacy import PrivacyHeadersMiddleware, setup_privacy_logging
 
 

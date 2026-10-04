@@ -1,25 +1,24 @@
 import uuid
-from datetime import datetime, timezone, date
-from decimal import Decimal
-from typing import Optional, List, Dict, Any, Sequence
 from collections import defaultdict
-from sqlalchemy import select, delete
+from collections.abc import Sequence
+from datetime import UTC, date, datetime
+from decimal import Decimal
+
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.models import Transaction, Statement, Insight
+from app.models.models import Insight, Transaction
 from app.schemas.schemas import (
     InsightCardSchema,
     SupportingTransactionSchema,
-    InsightListResponse,
 )
+from app.services.analytics.anomalies import detect_unusual_transactions
 from app.services.analytics.engine import (
-    calculate_summary,
     calculate_category_breakdown,
-    calculate_monthly_trends,
+    calculate_summary,
     compare_periods,
 )
 from app.services.analytics.recurring import detect_recurring_transactions
-from app.services.analytics.anomalies import detect_unusual_transactions
 
 
 def _to_supporting_schema(t: Transaction) -> SupportingTransactionSchema:
@@ -33,8 +32,8 @@ def _to_supporting_schema(t: Transaction) -> SupportingTransactionSchema:
 
 
 async def generate_insights(
-    db: AsyncSession, statement_id: Optional[uuid.UUID] = None
-) -> List[InsightCardSchema]:
+    db: AsyncSession, statement_id: uuid.UUID | None = None
+) -> list[InsightCardSchema]:
     """
     Deterministically generates grounded financial insights for a given statement
     (or across all transactions if statement_id is None).
@@ -51,10 +50,10 @@ async def generate_insights(
         return []
 
     # Map transaction lookup by id for quick retrieval
-    txn_map: Dict[uuid.UUID, Transaction] = {t.id: t for t in transactions}
+    txn_map: dict[uuid.UUID, Transaction] = {t.id: t for t in transactions}
 
-    generated: List[InsightCardSchema] = []
-    now = datetime.now(timezone.utc)
+    generated: list[InsightCardSchema] = []
+    now = datetime.now(UTC)
 
     # 1. Cash Flow & Savings Insight
     summary = calculate_summary(transactions)
@@ -81,7 +80,7 @@ async def generate_insights(
                 statement_id=statement_id,
                 insight_type="warning",
                 category="cash_flow",
-                title=f"Deficit Alert: Expenses Exceeded Income",
+                title="Deficit Alert: Expenses Exceeded Income",
                 content=(
                     f"During this period, your total expenses (${expenses:,.2f}) exceeded your income "
                     f"(${income:,.2f}) by ${abs(net):,.2f}. Review high-discretionary expenses to restore positive cash flow."
@@ -126,7 +125,7 @@ async def generate_insights(
 
     # 2. Category Spending Spikes & Significant Changes
     # Group transactions by month
-    by_month: Dict[str, List[Transaction]] = defaultdict(list)
+    by_month: dict[str, list[Transaction]] = defaultdict(list)
     for t in transactions:
         m_key = t.date.strftime("%Y-%m")
         by_month[m_key].append(t)
@@ -175,7 +174,7 @@ async def generate_insights(
     # 3. Unusual & Outlier Transactions
     unusual_alerts = detect_unusual_transactions(transactions)
     if unusual_alerts:
-        supporting_unusual: List[SupportingTransactionSchema] = []
+        supporting_unusual: list[SupportingTransactionSchema] = []
         for alert in unusual_alerts[:5]:
             matched = txn_map.get(alert.transaction_id)
             if matched:
@@ -212,15 +211,17 @@ async def generate_insights(
     recurring_items = [r for r in all_recurring if r.category != "Income"]
     if recurring_items:
         monthly_total = sum(
-            (r.expected_amount for r in recurring_items if r.is_subscription or r.frequency == "monthly"),
+            (
+                r.expected_amount
+                for r in recurring_items
+                if r.is_subscription or r.frequency == "monthly"
+            ),
             Decimal("0.00"),
         )
-        supporting_recurring: List[SupportingTransactionSchema] = []
+        supporting_recurring: list[SupportingTransactionSchema] = []
         for rec in recurring_items:
             # find latest transaction for this merchant
-            merchant_txns = [
-                t for t in transactions if t.merchant.lower() == rec.merchant.lower()
-            ]
+            merchant_txns = [t for t in transactions if t.merchant.lower() == rec.merchant.lower()]
             if merchant_txns:
                 supporting_recurring.append(_to_supporting_schema(merchant_txns[0]))
 
@@ -285,9 +286,13 @@ async def generate_insights(
         top_cat = breakdown[0]
         if top_cat.percentage >= 35.0:
             dominant_txns = [
-                t for t in transactions if t.category == top_cat.category and Decimal(str(t.amount)) < 0
+                t
+                for t in transactions
+                if t.category == top_cat.category and Decimal(str(t.amount)) < 0
             ]
-            dominant_txns = sorted(dominant_txns, key=lambda x: abs(Decimal(str(x.amount))), reverse=True)
+            dominant_txns = sorted(
+                dominant_txns, key=lambda x: abs(Decimal(str(x.amount))), reverse=True
+            )
 
             generated.append(
                 InsightCardSchema(
@@ -343,8 +348,8 @@ async def generate_insights(
 
 
 async def get_insights(
-    db: AsyncSession, statement_id: Optional[uuid.UUID] = None
-) -> List[InsightCardSchema]:
+    db: AsyncSession, statement_id: uuid.UUID | None = None
+) -> list[InsightCardSchema]:
     """
     Fetches persisted insights from PostgreSQL. If none exist, automatically generates them.
     """
@@ -359,7 +364,7 @@ async def get_insights(
         # Automatically generate on the fly
         return await generate_insights(db, statement_id=statement_id)
 
-    results: List[InsightCardSchema] = []
+    results: list[InsightCardSchema] = []
     for d in db_insights:
         supp_data = d.supporting_data or {}
         raw_supp_txns = supp_data.get("supporting_transactions", [])

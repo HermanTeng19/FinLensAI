@@ -1,16 +1,19 @@
-from decimal import Decimal, ROUND_HALF_UP
-from typing import Sequence, List
 from collections import defaultdict
+from collections.abc import Sequence
+from decimal import Decimal
+
 from app.models.models import Transaction
 from app.schemas.schemas import (
-    FinancialSummary,
     CategorySpending,
+    FinancialSummary,
     MonthlyTrend,
     PeriodComparison,
 )
 
 
-def calculate_summary(transactions: Sequence[Transaction], currency: str = "CAD") -> FinancialSummary:
+def calculate_summary(
+    transactions: Sequence[Transaction], currency: str = "CAD"
+) -> FinancialSummary:
     income = Decimal("0.00")
     expenses = Decimal("0.00")
 
@@ -32,7 +35,7 @@ def calculate_summary(transactions: Sequence[Transaction], currency: str = "CAD"
     )
 
 
-def calculate_category_breakdown(transactions: Sequence[Transaction]) -> List[CategorySpending]:
+def calculate_category_breakdown(transactions: Sequence[Transaction]) -> list[CategorySpending]:
     cat_totals = defaultdict(lambda: Decimal("0.00"))
     cat_counts = defaultdict(int)
 
@@ -44,7 +47,7 @@ def calculate_category_breakdown(transactions: Sequence[Transaction]) -> List[Ca
 
     total_expense = sum(cat_totals.values()) if cat_totals else Decimal("0.00")
 
-    breakdown: List[CategorySpending] = []
+    breakdown: list[CategorySpending] = []
     for cat, total in cat_totals.items():
         pct = float((total / total_expense) * 100) if total_expense > 0 else 0.0
         breakdown.append(
@@ -59,7 +62,7 @@ def calculate_category_breakdown(transactions: Sequence[Transaction]) -> List[Ca
     return sorted(breakdown, key=lambda x: x.amount, reverse=True)
 
 
-def calculate_monthly_trends(transactions: Sequence[Transaction]) -> List[MonthlyTrend]:
+def calculate_monthly_trends(transactions: Sequence[Transaction]) -> list[MonthlyTrend]:
     monthly_data = defaultdict(lambda: {"income": Decimal("0.00"), "expenses": Decimal("0.00")})
 
     for t in transactions:
@@ -70,7 +73,7 @@ def calculate_monthly_trends(transactions: Sequence[Transaction]) -> List[Monthl
         else:
             monthly_data[month_key]["expenses"] += amt
 
-    trends: List[MonthlyTrend] = []
+    trends: list[MonthlyTrend] = []
     for month_key in sorted(monthly_data.keys()):
         inc = monthly_data[month_key]["income"]
         exp = monthly_data[month_key]["expenses"]
@@ -111,7 +114,7 @@ def compare_periods(
     curr_cats = {c.category: c.amount for c in calculate_category_breakdown(current_txns)}
     prev_cats = {c.category: c.amount for c in calculate_category_breakdown(previous_txns)}
 
-    increased_cats: List[CategorySpending] = []
+    increased_cats: list[CategorySpending] = []
     all_cat_names = set(curr_cats.keys()).union(set(prev_cats.keys()))
 
     for cat_name in all_cat_names:
@@ -147,7 +150,7 @@ def get_top_transactions(
     transactions: Sequence[Transaction],
     limit: int = 10,
     txn_type: str = "expense",
-) -> List[Transaction]:
+) -> list[Transaction]:
     if txn_type == "expense":
         # Expenses are negative numbers, top expenses are those with greatest absolute value
         filtered = [t for t in transactions if Decimal(str(t.amount)) < 0]

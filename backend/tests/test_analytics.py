@@ -1,19 +1,20 @@
-import pytest
-from decimal import Decimal
-from datetime import date
 import uuid
+from datetime import date
+from decimal import Decimal
+
+import pytest
 from httpx import AsyncClient
 
 from app.models.models import Transaction
+from app.services.analytics.anomalies import detect_unusual_transactions
 from app.services.analytics.engine import (
-    calculate_summary,
     calculate_category_breakdown,
     calculate_monthly_trends,
+    calculate_summary,
     compare_periods,
     get_top_transactions,
 )
 from app.services.analytics.recurring import detect_recurring_transactions
-from app.services.analytics.anomalies import detect_unusual_transactions
 
 
 def _mock_txn(
@@ -181,14 +182,14 @@ def test_unusual_transaction_detection():
 @pytest.mark.asyncio
 async def test_analytics_api_endpoints(client: AsyncClient):
     csv_content = (
-        "Date,Description,Amount\n"
-        "2026-07-01,Netflix,-16.99\n"
-        "2026-08-01,Netflix,-16.99\n"
-        "2026-08-02,Starbucks,-5.25\n"
-        "2026-08-03,Starbucks,-5.25\n"
-        "2026-08-15,Electronics Superstore,-899.00\n"
-        "2026-08-20,Employer Direct Deposit,3500.00\n"
-    ).encode("utf-8")
+        b"Date,Description,Amount\n"
+        b"2026-07-01,Netflix,-16.99\n"
+        b"2026-08-01,Netflix,-16.99\n"
+        b"2026-08-02,Starbucks,-5.25\n"
+        b"2026-08-03,Starbucks,-5.25\n"
+        b"2026-08-15,Electronics Superstore,-899.00\n"
+        b"2026-08-20,Employer Direct Deposit,3500.00\n"
+    )
 
     valid_file = {"file": ("analytics_statement.csv", csv_content, "text/csv")}
     upload_res = await client.post("/api/statements/upload?run_sync=true", files=valid_file)
@@ -213,7 +214,9 @@ async def test_analytics_api_endpoints(client: AsyncClient):
     unusual_res = await client.get(f"/api/analytics/unusual?statement_id={stmt_id}")
     assert unusual_res.status_code == 200
     unusual = unusual_res.json()
-    assert any(u["merchant"] == "Starbucks" and u["anomaly_type"] == "duplicate_charge" for u in unusual)
+    assert any(
+        u["merchant"] == "Starbucks" and u["anomaly_type"] == "duplicate_charge" for u in unusual
+    )
     assert any(u["anomaly_type"] == "large_expense" for u in unusual)
 
     # 4. Top Spending Transactions API
@@ -230,4 +233,3 @@ async def test_analytics_api_endpoints(client: AsyncClient):
     assert comp_res.status_code == 200
     comp = comp_res.json()
     assert Decimal(str(comp["current_income"])) == Decimal("3500.00")
-

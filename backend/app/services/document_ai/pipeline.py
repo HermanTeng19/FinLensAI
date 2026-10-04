@@ -1,12 +1,17 @@
 import uuid
-from datetime import datetime, timezone
-from typing import List, Optional
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import UTC, datetime
+
 from sqlalchemy import select
-from app.models.models import Statement, Transaction, ProcessingJob
-from app.services.document_ai.parser import PDFParser, CSVParser, ExtractedTransactionCandidate
-from app.services.document_ai.merchant_normalizer import MerchantNormalizer
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.models import ProcessingJob, Statement, Transaction
 from app.services.document_ai.categorizer import Categorizer
+from app.services.document_ai.merchant_normalizer import MerchantNormalizer
+from app.services.document_ai.parser import (
+    CSVParser,
+    ExtractedTransactionCandidate,
+    PDFParser,
+)
 
 
 async def process_statement_pipeline(
@@ -29,14 +34,14 @@ async def process_statement_pipeline(
     job = ProcessingJob(
         statement_id=statement_id,
         status="processing",
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     db.add(job)
     await db.commit()
 
     try:
         # 2. Document extraction
-        candidates: List[ExtractedTransactionCandidate] = []
+        candidates: list[ExtractedTransactionCandidate] = []
         if file_format.lower() == "pdf":
             candidates = PDFParser.parse(file_bytes)
         elif file_format.lower() == "csv":
@@ -44,7 +49,7 @@ async def process_statement_pipeline(
         else:
             raise ValueError(f"Unsupported format {file_format}")
 
-        created_txns: List[Transaction] = []
+        created_txns: list[Transaction] = []
 
         # 3 & 4. Normalization and Categorization
         for c in candidates:
@@ -83,13 +88,14 @@ async def process_statement_pipeline(
             statement.period_end = max(t.date for t in created_txns)
 
         job.status = "completed"
-        job.completed_at = datetime.now(timezone.utc)
+        job.completed_at = datetime.now(UTC)
 
         await db.commit()
 
         # Phase 9: Automatically generate insights for the newly ingested statement
         try:
             from app.services.insights.engine import generate_insights
+
             await generate_insights(db, statement_id=statement.id)
         except Exception:
             pass  # Non-blocking for ingestion pipeline
@@ -101,6 +107,6 @@ async def process_statement_pipeline(
         statement.status = "failed"
         job.status = "failed"
         job.error_message = str(e)
-        job.completed_at = datetime.now(timezone.utc)
+        job.completed_at = datetime.now(UTC)
         await db.commit()
         raise e

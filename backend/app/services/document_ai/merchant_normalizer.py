@@ -1,5 +1,4 @@
 import re
-from typing import Tuple
 
 KNOWN_MERCHANTS = {
     "AMAZON": "Amazon",
@@ -45,6 +44,26 @@ KNOWN_MERCHANTS = {
     "SALARY": "Payroll / Salary",
     "E-TRANSFER": "Interac e-Transfer",
     "INTERAC": "Interac e-Transfer",
+    "MCDONALD": "McDonald's",
+    "MCDONALDS": "McDonald's",
+    "SUBWAY": "Subway",
+    "SHOPPERS DRUG": "Shoppers Drug Mart",
+    "SHOPPERS": "Shoppers Drug Mart",
+    "REXALL": "Rexall",
+    "CVS": "CVS",
+    "WALGREENS": "Walgreens",
+    "AIR CANADA": "Air Canada",
+    "WESTJET": "WestJet",
+    "AIRBNB": "Airbnb",
+    "EXPEDIA": "Expedia",
+    "STEAM": "Steam",
+    "PLAYSTATION": "PlayStation",
+    "NINTENDO": "Nintendo",
+    "MICROSOFT": "Microsoft",
+    "GOOGLE": "Google",
+    "OPENAI": "OpenAI",
+    "CHATGPT": "OpenAI",
+    "GITHUB": "GitHub",
 }
 
 SORTED_MERCHANT_KEYS = sorted(KNOWN_MERCHANTS.keys(), key=len, reverse=True)
@@ -64,7 +83,7 @@ SUFFIX_REGEX = re.compile(
 
 class MerchantNormalizer:
     @classmethod
-    def normalize(cls, raw_description: str) -> Tuple[str, float]:
+    def normalize(cls, raw_description: str) -> tuple[str, float]:
         raw = raw_description.strip()
         if not raw:
             return "Unknown Merchant", 0.3

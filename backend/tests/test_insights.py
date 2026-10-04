@@ -1,13 +1,14 @@
 import uuid
 from datetime import date
 from decimal import Decimal
+
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.models import Statement, Transaction, Insight
-from app.services.insights.engine import generate_insights, get_insights
+from app.models.models import Insight, Statement, Transaction
+from app.services.insights.engine import generate_insights
 
 
 @pytest.fixture
@@ -207,7 +208,9 @@ async def test_insights_api_endpoints(client: AsyncClient, seed_insights_data):
     assert data["total_count"] > 0
     assert "insights" in data
     assert len(data["insights"]) == data["total_count"]
-    assert data["warning_count"] + data["positive_count"] + data["info_count"] == data["total_count"]
+    assert (
+        data["warning_count"] + data["positive_count"] + data["info_count"] == data["total_count"]
+    )
 
     first_card = data["insights"][0]
     assert "title" in first_card

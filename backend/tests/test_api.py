@@ -1,6 +1,8 @@
-import pytest
 from decimal import Decimal
+
+import pytest
 from httpx import AsyncClient
+
 from app.schemas.schemas import FinancialSummary
 
 
@@ -52,7 +54,9 @@ async def test_statement_lifecycle_and_cascade_deletion(client: AsyncClient):
     assert res.status_code == 400
 
     # 2. Valid CSV Statement Upload
-    csv_content = b"Date,Description,Amount\n2026-09-18,AMZN Mktp,-124.30\n2026-09-19,Payroll,3000.00\n"
+    csv_content = (
+        b"Date,Description,Amount\n2026-09-18,AMZN Mktp,-124.30\n2026-09-19,Payroll,3000.00\n"
+    )
     valid_file = {"file": ("statement_sept.csv", csv_content, "text/csv")}
     res = await client.post("/api/statements/upload", files=valid_file)
     assert res.status_code == 201

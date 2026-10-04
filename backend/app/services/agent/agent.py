@@ -1,16 +1,15 @@
-import json
-import re
-from typing import List, Dict, Any, Optional
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.schemas.schemas import ChatMessage, ToolCallRecord, AgentQueryResponse
-from app.services.agent.tools import TOOL_REGISTRY, TOOL_DEFINITIONS
+from app.schemas.schemas import AgentQueryResponse, ChatMessage, ToolCallRecord
+from app.services.agent.tools import TOOL_REGISTRY
 
 
 async def execute_tool(
     db: AsyncSession,
     tool_name: str,
-    arguments: Dict[str, Any],
+    arguments: dict[str, Any],
 ) -> Any:
     """
     Executes a deterministic financial tool safely from the registry.
@@ -22,7 +21,180 @@ async def execute_tool(
     try:
         return await tool_fn(db=db, **arguments)
     except Exception as e:
-        return {"error": f"Tool execution failed for '{tool_name}': {str(e)}"}
+        return {"error": f"Tool execution failed for '{tool_name}': {e!s}"}
+
+
+RECURRING_KEYWORDS = [
+    "recurring",
+    "subscription",
+    "subscriptions",
+    "bill",
+    "bills",
+    "monthly charge",
+    "monthly fee",
+    "订阅",
+    "周期",
+    "按月",
+    "自动扣款",
+    "固定账单",
+]
+UNUSUAL_KEYWORDS = [
+    "unusual",
+    "anomaly",
+    "anomalies",
+    "duplicate",
+    "strange",
+    "unexpected",
+    "suspicious",
+    "spike",
+    "异常",
+    "可疑",
+    "突增",
+    "重复扣款",
+    "重复消费",
+    "不寻常",
+]
+TOP_KEYWORDS = [
+    "top",
+    "largest",
+    "biggest",
+    "highest",
+    "most expensive",
+    "major expense",
+    "最大",
+    "最高",
+    "最多",
+    "大额",
+    "最贵",
+    "主要支出",
+]
+CATEGORY_KEYWORDS = [
+    "restaurant",
+    "food",
+    "dining",
+    "shopping",
+    "transportation",
+    "entertainment",
+    "spend",
+    "spending",
+    "how much",
+    "category",
+    "categories",
+    "餐饮",
+    "外卖",
+    "美食",
+    "购物",
+    "买东西",
+    "交通",
+    "出行",
+    "娱乐",
+    "水电",
+    "医疗",
+    "住房",
+    "房租",
+    "花了多少",
+    "支出多少",
+    "花销",
+    "分类",
+    "类目",
+    "各项开销",
+    "各项支出",
+    "各项花费",
+]
+CATEGORY_MAP = {
+    "food": "Food",
+    "dining": "Food",
+    "restaurant": "Food",
+    "cafe": "Food",
+    "eating": "Food",
+    "餐饮": "Food",
+    "外卖": "Food",
+    "美食": "Food",
+    "咖啡": "Food",
+    "shopping": "Shopping",
+    "retail": "Shopping",
+    "购物": "Shopping",
+    "买东西": "Shopping",
+    "transportation": "Transportation",
+    "transport": "Transportation",
+    "transit": "Transportation",
+    "gas": "Transportation",
+    "fuel": "Transportation",
+    "交通": "Transportation",
+    "出行": "Transportation",
+    "加油": "Transportation",
+    "entertainment": "Entertainment",
+    "streaming": "Entertainment",
+    "movies": "Entertainment",
+    "娱乐": "Entertainment",
+    "电影": "Entertainment",
+    "游戏": "Entertainment",
+    "utilities": "Utilities",
+    "utility": "Utilities",
+    "hydro": "Utilities",
+    "electric": "Utilities",
+    "internet": "Utilities",
+    "水电": "Utilities",
+    "电费": "Utilities",
+    "水费": "Utilities",
+    "宽带": "Utilities",
+    "healthcare": "Healthcare",
+    "health": "Healthcare",
+    "medical": "Healthcare",
+    "pharmacy": "Healthcare",
+    "医疗": "Healthcare",
+    "看病": "Healthcare",
+    "药店": "Healthcare",
+    "housing": "Housing",
+    "rent": "Housing",
+    "mortgage": "Housing",
+    "住房": "Housing",
+    "房租": "Housing",
+    "房贷": "Housing",
+    "travel": "Travel",
+    "flight": "Travel",
+    "hotel": "Travel",
+    "旅行": "Travel",
+    "旅游": "Travel",
+    "机票": "Travel",
+    "酒店": "Travel",
+}
+COMPARE_KEYWORDS = [
+    "compare",
+    "versus",
+    "vs",
+    "increase",
+    "difference",
+    "month over month",
+    "trend",
+    "对比",
+    "比较",
+    "环比",
+    "同比",
+    "变化",
+    "增长",
+    "减少",
+]
+SUMMARY_KEYWORDS = [
+    "summary",
+    "cash flow",
+    "balance",
+    "how am i doing",
+    "overview",
+    "total income",
+    "total expense",
+    "net cash",
+    "总览",
+    "总结",
+    "概况",
+    "财务状况",
+    "结余",
+    "现金流",
+    "总收入",
+    "总支出",
+    "净收入",
+    "收支情况",
+]
 
 
 async def _deterministic_rule_agent(
@@ -34,17 +206,21 @@ async def _deterministic_rule_agent(
     Guarantees 100% grounded answers directly from authoritative financial database.
     """
     q = user_query.lower()
-    tool_records: List[ToolCallRecord] = []
-    response_lines: List[str] = []
+    tool_records: list[ToolCallRecord] = []
+    response_lines: list[str] = []
 
     # 1. Recurring charges & subscriptions
-    if any(k in q for k in ["recurring", "subscription", "bill", "monthly charge"]):
-        args: Dict[str, Any] = {}
+    if any(k in q for k in RECURRING_KEYWORDS):
+        args: dict[str, Any] = {}
         output = await execute_tool(db, "detect_recurring_transactions", args)
-        tool_records.append(ToolCallRecord(tool_name="detect_recurring_transactions", arguments=args, output=output))
+        tool_records.append(
+            ToolCallRecord(tool_name="detect_recurring_transactions", arguments=args, output=output)
+        )
 
         if not output:
-            response_lines.append("I analyzed your transaction history and found no recurring subscriptions or bills at this time.")
+            response_lines.append(
+                "I analyzed your transaction history and found no recurring subscriptions or bills at this time."
+            )
         else:
             response_lines.append(f"I found **{len(output)}** recurring transaction(s):")
             for item in output:
@@ -55,15 +231,21 @@ async def _deterministic_rule_agent(
                 )
 
     # 2. Unusual transactions & anomalies
-    elif any(k in q for k in ["unusual", "anomaly", "anomalies", "duplicate", "strange", "unexpected"]):
+    elif any(k in q for k in UNUSUAL_KEYWORDS):
         args = {}
         output = await execute_tool(db, "detect_unusual_transactions", args)
-        tool_records.append(ToolCallRecord(tool_name="detect_unusual_transactions", arguments=args, output=output))
+        tool_records.append(
+            ToolCallRecord(tool_name="detect_unusual_transactions", arguments=args, output=output)
+        )
 
         if not output:
-            response_lines.append("Good news! No unusual transactions, suspicious spikes, or duplicate charges were detected.")
+            response_lines.append(
+                "Good news! No unusual transactions, suspicious spikes, or duplicate charges were detected."
+            )
         else:
-            response_lines.append(f"I flagged **{len(output)}** unusual transaction(s) requiring your attention:")
+            response_lines.append(
+                f"I flagged **{len(output)}** unusual transaction(s) requiring your attention:"
+            )
             for a in output:
                 severity_badge = f"[{a['severity'].upper()}]"
                 response_lines.append(
@@ -71,11 +253,17 @@ async def _deterministic_rule_agent(
                 )
 
     # 3. Top / Largest purchases
-    elif any(k in q for k in ["top", "largest", "biggest", "highest", "most expensive"]):
-        txn_type = "income" if any(k in q for k in ["income", "earned", "deposit"]) else "expense"
+    elif any(k in q for k in TOP_KEYWORDS):
+        txn_type = (
+            "income"
+            if any(k in q for k in ["income", "earned", "deposit", "收入", "进账", "入账"])
+            else "expense"
+        )
         args = {"limit": 5, "txn_type": txn_type}
         output = await execute_tool(db, "get_top_transactions", args)
-        tool_records.append(ToolCallRecord(tool_name="get_top_transactions", arguments=args, output=output))
+        tool_records.append(
+            ToolCallRecord(tool_name="get_top_transactions", arguments=args, output=output)
+        )
 
         if not output:
             response_lines.append("No transactions found matching your request.")
@@ -87,20 +275,50 @@ async def _deterministic_rule_agent(
                     f"{idx}. **{t['merchant']}** ({t['category']}): ${abs(float(t['amount'])):.2f} on {t['date']}"
                 )
 
-    # 4. Spending by Category / Specific Merchant
-    elif any(k in q for k in ["restaurant", "food", "dining", "shopping", "transportation", "entertainment", "spend", "how much"]):
-        category_match = None
-        for cat in ["Food", "Shopping", "Transportation", "Entertainment", "Utilities", "Travel", "Healthcare", "Housing"]:
-            if cat.lower() in q:
-                category_match = cat
-                break
+    # 4. Period comparison
+    elif any(k in q for k in COMPARE_KEYWORDS):
+        # Default compare current month (e.g. Sept 2026) vs previous (Aug 2026)
+        args = {
+            "curr_start": "2026-09-01",
+            "curr_end": "2026-09-30",
+            "prev_start": "2026-08-01",
+            "prev_end": "2026-08-31",
+        }
+        output = await execute_tool(db, "compare_periods", args)
+        tool_records.append(
+            ToolCallRecord(tool_name="compare_periods", arguments=args, output=output)
+        )
 
-        if "restaurant" in q or "dining" in q or "eating out" in q:
-            category_match = "Food"
+        curr_exp = abs(float(output.get("current_expenses", 0)))
+        prev_exp = abs(float(output.get("previous_expenses", 0)))
+        delta_pct = output.get("delta_percentage", 0.0)
+        direction = "increased" if delta_pct > 0 else "decreased"
+
+        response_lines.append(
+            f"Comparing September vs August:\n"
+            f"- Current Expenses: **${curr_exp:.2f}**\n"
+            f"- Previous Expenses: **${prev_exp:.2f}**\n"
+            f"- Net Change: Spending {direction} by **{abs(delta_pct):.1f}%**"
+        )
+        top_inc = output.get("top_increased_categories", [])
+        if top_inc:
+            response_lines.append(
+                f"- Category with greatest increase: **{top_inc[0]['category']}** (+${float(top_inc[0]['amount_increase']):.2f})"
+            )
+
+    # 5. Spending by Category / Specific Merchant
+    elif any(k in q for k in CATEGORY_KEYWORDS):
+        category_match = None
+        for key, cat_name in CATEGORY_MAP.items():
+            if key in q:
+                category_match = cat_name
+                break
 
         args = {"category": category_match} if category_match else {}
         output = await execute_tool(db, "get_spending_by_category", args)
-        tool_records.append(ToolCallRecord(tool_name="get_spending_by_category", arguments=args, output=output))
+        tool_records.append(
+            ToolCallRecord(tool_name="get_spending_by_category", arguments=args, output=output)
+        )
 
         if category_match:
             total_spent = float(output.get("total_spending", "0.00"))
@@ -119,38 +337,13 @@ async def _deterministic_rule_agent(
                         f"- **{c['category']}**: ${float(c['amount']):.2f} ({c['percentage']:.1f}% of total, {c['transaction_count']} transactions)"
                     )
 
-    # 5. Period comparison
-    elif any(k in q for k in ["compare", "versus", "vs", "increase", "difference"]):
-        # Default compare current month (e.g. Sept 2026) vs previous (Aug 2026)
-        args = {
-            "curr_start": "2026-09-01",
-            "curr_end": "2026-09-30",
-            "prev_start": "2026-08-01",
-            "prev_end": "2026-08-31",
-        }
-        output = await execute_tool(db, "compare_periods", args)
-        tool_records.append(ToolCallRecord(tool_name="compare_periods", arguments=args, output=output))
-
-        curr_exp = abs(float(output.get("current_expenses", 0)))
-        prev_exp = abs(float(output.get("previous_expenses", 0)))
-        delta_pct = output.get("delta_percentage", 0.0)
-        direction = "increased" if delta_pct > 0 else "decreased"
-
-        response_lines.append(
-            f"Comparing September vs August:\n"
-            f"- Current Expenses: **${curr_exp:.2f}**\n"
-            f"- Previous Expenses: **${prev_exp:.2f}**\n"
-            f"- Net Change: Spending {direction} by **{abs(delta_pct):.1f}%**"
-        )
-        top_inc = output.get("top_increased_categories", [])
-        if top_inc:
-            response_lines.append(f"- Category with greatest increase: **{top_inc[0]['category']}** (+${float(top_inc[0]['amount_increase']):.2f})")
-
     # 6. Overall Monthly Summary
-    elif any(k in q for k in ["summary", "cash flow", "balance", "how am i doing", "overview"]):
+    elif any(k in q for k in SUMMARY_KEYWORDS):
         args = {}
         output = await execute_tool(db, "get_monthly_summary", args)
-        tool_records.append(ToolCallRecord(tool_name="get_monthly_summary", arguments=args, output=output))
+        tool_records.append(
+            ToolCallRecord(tool_name="get_monthly_summary", arguments=args, output=output)
+        )
 
         ov = output.get("overall", {})
         inc = float(ov.get("total_income", 0))
@@ -169,7 +362,9 @@ async def _deterministic_rule_agent(
     else:
         args = {"query": user_query.strip(), "limit": 5}
         output = await execute_tool(db, "search_transactions", args)
-        tool_records.append(ToolCallRecord(tool_name="search_transactions", arguments=args, output=output))
+        tool_records.append(
+            ToolCallRecord(tool_name="search_transactions", arguments=args, output=output)
+        )
 
         if not output:
             response_lines.append(
@@ -179,7 +374,9 @@ async def _deterministic_rule_agent(
         else:
             response_lines.append(f"Found {len(output)} transaction(s) matching '{user_query}':")
             for t in output:
-                response_lines.append(f"- **{t['merchant']}** ({t['category']}): ${abs(float(t['amount'])):.2f} on {t['date']}")
+                response_lines.append(
+                    f"- **{t['merchant']}** ({t['category']}): ${abs(float(t['amount'])):.2f} on {t['date']}"
+                )
 
     return AgentQueryResponse(
         response="\n".join(response_lines),
@@ -191,7 +388,7 @@ async def _deterministic_rule_agent(
 async def query_financial_agent(
     db: AsyncSession,
     message: str,
-    history: Optional[List[ChatMessage]] = None,
+    history: list[ChatMessage] | None = None,
 ) -> AgentQueryResponse:
     """
     Primary entry point for the FinLens Agentic Assistant.
