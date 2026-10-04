@@ -67,6 +67,9 @@ class Statement(Base):
     processing_jobs: Mapped[List["ProcessingJob"]] = relationship(
         "ProcessingJob", back_populates="statement", cascade="all, delete-orphan"
     )
+    insights: Mapped[List["Insight"]] = relationship(
+        "Insight", back_populates="statement", cascade="all, delete-orphan"
+    )
 
 
 class Transaction(Base):
@@ -147,7 +150,7 @@ class Insight(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True
     )
     statement_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("statements.id", ondelete="CASCADE"), nullable=True
+        UUID(as_uuid=True), ForeignKey("statements.id", ondelete="CASCADE"), nullable=True, index=True
     )
     insight_type: Mapped[str] = mapped_column(String(50), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -155,4 +158,8 @@ class Insight(Base):
     supporting_data: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON, nullable=True)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+    )
+
+    statement: Mapped[Optional["Statement"]] = relationship(
+        "Statement", back_populates="insights"
     )

@@ -738,8 +738,13 @@ struct ProfileSectionView: View {
     @Environment(AppViewModel.self) private var viewModel
     @Binding var isShowingFileImporter: Bool
 
+    @State private var statementToDelete: Statement? = nil
+    @State private var isShowingDeleteStatementAlert: Bool = false
+    @State private var isShowingResetConfirmation: Bool = false
+    @State private var showResetSuccessBanner: Bool = false
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 24) {
             // Upload Statement CTA
             VStack(alignment: .leading, spacing: 10) {
                 Label("Bank Statements (PDF / CSV)", systemImage: "doc.text")
@@ -763,9 +768,15 @@ struct ProfileSectionView: View {
 
             // Uploaded Statements List
             if !viewModel.statements.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Uploaded Statements")
-                        .font(.subheadline.bold())
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("Uploaded Statements")
+                            .font(.headline)
+                        Spacer()
+                        Text("\(viewModel.statements.count) total")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
 
                     ForEach(viewModel.statements) { stmt in
                         HStack {
@@ -779,18 +790,23 @@ struct ProfileSectionView: View {
                                     Text(stmt.status.rawValue.capitalized)
                                         .font(.caption2.bold())
                                         .foregroundStyle(stmt.status == .completed ? .green : .blue)
+                                    if stmt.totalTransactions > 0 {
+                                        Text("• \(stmt.totalTransactions) txns")
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
                             }
                             Spacer()
                             Button(role: .destructive) {
-                                Task {
-                                    await viewModel.deleteStatement(id: stmt.id)
-                                }
+                                statementToDelete = stmt
+                                isShowingDeleteStatementAlert = true
                             } label: {
                                 Image(systemName: "trash")
                                     .foregroundStyle(.red)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel("Delete statement \(stmt.filename)")
                         }
                         .padding()
                         .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.06)))
@@ -798,18 +814,155 @@ struct ProfileSectionView: View {
                 }
             }
 
-            // Privacy Assurance
-            VStack(alignment: .leading, spacing: 8) {
-                Label("Privacy & Data Security", systemImage: "lock.shield.fill")
+            // Privacy & Data Security Badges
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Privacy & Security Architecture", systemImage: "lock.shield.fill")
                     .font(.headline)
-                Text("FinLens AI operates with zero bank password requirements. All financial parsing and storage is deterministic, with permanent cascade deletion controls.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+
+                VStack(spacing: 10) {
+                    PrivacyFeatureRow(
+                        icon: "memorychip",
+                        title: "In-Memory Parsing",
+                        description: "Bank statement PDFs/CSVs are processed in-memory. Cleartext documents are never stored on disk."
+                    )
+                    PrivacyFeatureRow(
+                        icon: "eye.slash.fill",
+                        title: "Sensitive Data Redaction",
+                        description: "Credit card PANs, Canadian SINs, and bank transit codes are automatically masked from all logs."
+                    )
+                    PrivacyFeatureRow(
+                        icon: "arrow.triangle.2.circlepath",
+                        title: "Cascade Deletion",
+                        description: "Deleting a statement atomically purges all linked transactions, insights, and processing jobs."
+                    )
+                    PrivacyFeatureRow(
+                        icon: "key.slash",
+                        title: "Zero Bank Passwords",
+                        description: "FinLens AI never requests, stores, or accesses your bank login credentials."
+                    )
+                }
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.08)))
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.06)))
+
+            // Reset Confirmation Success Banner
+            if showResetSuccessBanner, let result = viewModel.lastResetResult {
+                HStack(spacing: 12) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Data Reset Complete")
+                            .font(.subheadline.bold())
+                        Text("Purged \(result.deletedStatements) statements, \(result.deletedTransactions) transactions, and \(result.deletedInsights) insights.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button {
+                        showResetSuccessBanner = false
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding()
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.green.opacity(0.12)))
+            }
+
+            // Danger Zone: Total Data Purge
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Danger Zone", systemImage: "exclamationmark.triangle.fill")
+                    .font(.headline)
+                    .foregroundStyle(.red)
+
+                Text("Permanently erase all uploaded statements, transactions, AI insights, and jobs. This operation is irreversible.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Button(role: .destructive) {
+                    isShowingResetConfirmation = true
+                } label: {
+                    HStack {
+                        if viewModel.isResettingData {
+                            ProgressView()
+                                .controlSize(.small)
+                                .padding(.trailing, 4)
+                        } else {
+                            Image(systemName: "trash.fill")
+                        }
+                        Text(viewModel.isResettingData ? "Erasing Financial Records..." : "Erase All Financial Data")
+                            .bold()
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.red.opacity(0.12)))
+                    .foregroundStyle(.red)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                    )
+                }
+                .disabled(viewModel.isResettingData)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color.red.opacity(0.04)))
         }
+        // Confirmation alert for single statement deletion
+        .confirmationDialog(
+            "Delete Statement?",
+            isPresented: $isShowingDeleteStatementAlert,
+            titleVisibility: .visible,
+            presenting: statementToDelete
+        ) { stmt in
+            Button("Delete Statement and Transactions", role: .destructive) {
+                Task {
+                    await viewModel.deleteStatement(id: stmt.id)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { stmt in
+            Text("Are you sure you want to delete \"\(stmt.filename)\"? All transactions, insights, and jobs associated with this statement will be permanently erased.")
+        }
+        // Confirmation alert for total reset
+        .alert("Erase All Financial Data?", isPresented: $isShowingResetConfirmation) {
+            Button("Permanently Erase Everything", role: .destructive) {
+                Task {
+                    await viewModel.resetAllFinancialData()
+                    showResetSuccessBanner = true
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will permanently and irreversibly wipe all uploaded statements, parsed transactions, AI insights, and category summaries. You cannot undo this action.")
+        }
+    }
+}
+
+// MARK: - Privacy Feature Row
+struct PrivacyFeatureRow: View {
+    let icon: String
+    let title: String
+    let description: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 24)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                Text(description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 2)
     }
 }
 

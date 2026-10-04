@@ -29,6 +29,11 @@ public final class AppViewModel {
     public private(set) var isAgentThinking: Bool = false
     public private(set) var lastToolCalls: [AgentToolCall] = []
 
+    // Privacy & Data Management State
+    public private(set) var privacyInfo: PrivacyPolicyInfo? = nil
+    public private(set) var lastResetResult: DataResetResult? = nil
+    public private(set) var isResettingData: Bool = false
+
     // Network & UI Status
     public private(set) var isServerConnected: Bool = false
     public private(set) var isLoading: Bool = false
@@ -74,9 +79,10 @@ public final class AppViewModel {
                 async let txnsTask = apiClient.fetchTransactions(statementId: nil, limit: 100)
                 async let stmtsTask = apiClient.fetchStatements()
                 async let insTask = apiClient.fetchInsights(statementId: nil)
+                async let privTask = apiClient.fetchPrivacyInfo()
 
-                let (sum, cats, trends, rec, un, txns, stmts, ins) = try await (
-                    sumTask, catTask, trendTask, recTask, unTask, txnsTask, stmtsTask, insTask
+                let (sum, cats, trends, rec, un, txns, stmts, ins, priv) = try await (
+                    sumTask, catTask, trendTask, recTask, unTask, txnsTask, stmtsTask, insTask, privTask
                 )
 
                 self.summary = sum
@@ -87,6 +93,7 @@ public final class AppViewModel {
                 self.transactions = txns
                 self.statements = stmts
                 self.insights = ins
+                self.privacyInfo = priv
             } else {
                 self.loadOfflineSampleData()
             }
@@ -124,6 +131,42 @@ public final class AppViewModel {
         }
 
         self.isLoading = false
+    }
+
+    public func resetAllFinancialData() async {
+        self.isResettingData = true
+        self.errorMessage = nil
+
+        do {
+            if isServerConnected {
+                let result = try await apiClient.resetAllData()
+                self.lastResetResult = result
+            }
+            // Clear all local in-memory records
+            self.statements.removeAll()
+            self.transactions.removeAll()
+            self.categorySpending.removeAll()
+            self.monthlyTrends.removeAll()
+            self.recurringItems.removeAll()
+            self.unusualTransactions.removeAll()
+            self.insights.removeAll()
+            self.chatMessages.removeAll()
+            self.lastToolCalls.removeAll()
+            self.summary = nil
+        } catch {
+            self.errorMessage = error.localizedDescription
+        }
+
+        self.isResettingData = false
+    }
+
+    public func fetchPrivacyInfo() async {
+        guard isServerConnected else { return }
+        do {
+            self.privacyInfo = try await apiClient.fetchPrivacyInfo()
+        } catch {
+            // Non-fatal
+        }
     }
 
     public func sendChatMessage(_ messageText: String) async {

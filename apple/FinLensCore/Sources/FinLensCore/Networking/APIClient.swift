@@ -34,6 +34,8 @@ public protocol APIClientProtocol: Sendable {
     func fetchStatements() async throws -> [Statement]
     func uploadStatement(data: Data, filename: String) async throws -> Statement
     func deleteStatement(id: String) async throws
+    func resetAllData() async throws -> DataResetResult
+    func fetchPrivacyInfo() async throws -> PrivacyPolicyInfo
     func askAgent(message: String, history: [AgentHistoryItem]?) async throws -> AgentQueryResult
     func fetchInsights(statementId: String?) async throws -> [InsightItem]
     func generateInsights(statementId: String?) async throws -> [InsightItem]
@@ -180,6 +182,28 @@ public actor APIClient: APIClientProtocol {
             let msg = String(data: responseData, encoding: .utf8) ?? "Delete failed"
             throw APIError.serverError(statusCode: httpRes.statusCode, message: msg)
         }
+    }
+
+    public func resetAllData() async throws -> DataResetResult {
+        let url = baseURL.appendingPathComponent("api/data/reset")
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (responseData, response) = try await session.data(for: request)
+        guard let httpRes = response as? HTTPURLResponse else {
+            throw APIError.networkError("Invalid HTTP response.")
+        }
+        guard (200...299).contains(httpRes.statusCode) else {
+            let msg = String(data: responseData, encoding: .utf8) ?? "Data reset failed"
+            throw APIError.serverError(statusCode: httpRes.statusCode, message: msg)
+        }
+        return try decoder.decode(DataResetResult.self, from: responseData)
+    }
+
+    public func fetchPrivacyInfo() async throws -> PrivacyPolicyInfo {
+        let url = baseURL.appendingPathComponent("api/data/privacy-info")
+        return try await performRequest(url: url)
     }
 
     public func askAgent(message: String, history: [AgentHistoryItem]? = nil) async throws -> AgentQueryResult {

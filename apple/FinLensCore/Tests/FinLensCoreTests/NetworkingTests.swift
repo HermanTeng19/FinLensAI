@@ -179,6 +179,28 @@ final class MockAPIClient: APIClientProtocol, Sendable {
         Statement(filename: filename, fileFormat: .csv)
     }
     func deleteStatement(id: String) async throws {}
+    func resetAllData() async throws -> DataResetResult {
+        DataResetResult(
+            status: "success",
+            deletedStatements: 1,
+            deletedTransactions: 1,
+            deletedInsights: 1,
+            deletedJobs: 1,
+            message: "All data cleared",
+            timestamp: "2026-10-04T22:30:00Z"
+        )
+    }
+    func fetchPrivacyInfo() async throws -> PrivacyPolicyInfo {
+        PrivacyPolicyInfo(
+            architecture: "Zero-Retention & In-Memory Extraction",
+            bankCredentialsRequired: false,
+            inMemoryPdfProcessing: true,
+            unencryptedFilesStoredOnDisk: false,
+            logRedactionEnabled: true,
+            cascadeDeletionSupported: true,
+            guarantee: "FinLens AI does not require, store, or transmit your online banking credentials."
+        )
+    }
     func askAgent(message: String, history: [AgentHistoryItem]?) async throws -> AgentQueryResult {
         AgentQueryResult(
             response: "Mock agent answer: You spent $1200.00",
@@ -256,6 +278,66 @@ extension NetworkingTests {
         XCTAssertEqual(insight.supportingTransactions.count, 1)
         XCTAssertEqual(insight.supportingTransactions[0].merchant, "Safeway")
         XCTAssertEqual(insight.supportingTransactions[0].amount, Decimal(string: "-150.00")!)
+    }
+
+    func testDataResetResultDecoding() throws {
+        let json = """
+        {
+            "status": "success",
+            "deleted_statements": 3,
+            "deleted_transactions": 45,
+            "deleted_insights": 6,
+            "deleted_jobs": 3,
+            "message": "All financial records purged.",
+            "timestamp": "2026-10-04T22:30:00Z"
+        }
+        """.data(using: .utf8)!
+
+        let decoder = FinLensJSONDecoder.makeStandard()
+        let result = try decoder.decode(DataResetResult.self, from: json)
+        XCTAssertEqual(result.status, "success")
+        XCTAssertEqual(result.deletedStatements, 3)
+        XCTAssertEqual(result.deletedTransactions, 45)
+        XCTAssertEqual(result.deletedInsights, 6)
+        XCTAssertEqual(result.deletedJobs, 3)
+    }
+
+    func testPrivacyPolicyInfoDecoding() throws {
+        let json = """
+        {
+            "architecture": "Zero-Retention & In-Memory Extraction",
+            "bank_credentials_required": false,
+            "in_memory_pdf_processing": true,
+            "unencrypted_files_stored_on_disk": false,
+            "log_redaction_enabled": true,
+            "cascade_deletion_supported": true,
+            "guarantee": "FinLens AI does not store credentials."
+        }
+        """.data(using: .utf8)!
+
+        let decoder = FinLensJSONDecoder.makeStandard()
+        let info = try decoder.decode(PrivacyPolicyInfo.self, from: json)
+        XCTAssertEqual(info.bankCredentialsRequired, false)
+        XCTAssertEqual(info.inMemoryPdfProcessing, true)
+        XCTAssertEqual(info.cascadeDeletionSupported, true)
+    }
+
+    @MainActor
+    func testAppViewModelResetData() async {
+        let mock = MockAPIClient()
+        let vm = AppViewModel(apiClient: mock)
+        await vm.loadAllData()
+
+        XCTAssertFalse(vm.transactions.isEmpty)
+        XCTAssertFalse(vm.insights.isEmpty)
+
+        await vm.resetAllFinancialData()
+
+        XCTAssertTrue(vm.transactions.isEmpty)
+        XCTAssertTrue(vm.insights.isEmpty)
+        XCTAssertTrue(vm.statements.isEmpty)
+        XCTAssertNil(vm.summary)
+        XCTAssertEqual(vm.lastResetResult?.status, "success")
     }
 }
 

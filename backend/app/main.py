@@ -10,10 +10,14 @@ from app.api.transactions import router as transactions_router
 from app.api.analytics import router as analytics_router
 from app.api.agent import router as agent_router
 from app.api.insights import router as insights_router
+from app.api.privacy import router as privacy_router
+from app.core.privacy import PrivacyHeadersMiddleware, setup_privacy_logging
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Configure privacy filter on logging
+    setup_privacy_logging()
     # Ensure database schema tables exist on startup
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -27,6 +31,9 @@ app = FastAPI(
     description="FinLens AI Production Backend & Financial Intelligence Engine",
     lifespan=lifespan,
 )
+
+# Privacy & Security Headers Middleware (zero-retention headers)
+app.add_middleware(PrivacyHeadersMiddleware)
 
 # CORS Middleware
 app.add_middleware(
@@ -44,6 +51,7 @@ app.include_router(transactions_router, prefix=settings.API_V1_PREFIX)
 app.include_router(analytics_router, prefix=settings.API_V1_PREFIX)
 app.include_router(agent_router, prefix=settings.API_V1_PREFIX)
 app.include_router(insights_router, prefix=settings.API_V1_PREFIX)
+app.include_router(privacy_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/")
