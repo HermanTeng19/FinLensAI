@@ -186,5 +186,76 @@ final class MockAPIClient: APIClientProtocol, Sendable {
             grounded: true
         )
     }
+    func fetchInsights(statementId: String?) async throws -> [InsightItem] {
+        [
+            InsightItem(
+                insightType: .positive,
+                category: "cash_flow",
+                title: "Positive Cash Flow: Saved $3,800.00",
+                content: "You achieved a healthy net surplus of $3,800.00.",
+                severity: .low,
+                metric: "+76.0% Saved",
+                supportingTransactions: [
+                    SupportingTransaction(date: "2026-09-01", merchant: "Mock Mart", amount: Decimal(string: "-1200.00")!, category: "Food")
+                ]
+            )
+        ]
+    }
+    func generateInsights(statementId: String?) async throws -> [InsightItem] {
+        try await fetchInsights(statementId: statementId)
+    }
+}
+
+extension NetworkingTests {
+    func testInsightJSONDecoding() throws {
+        let json = """
+        {
+            "insights": [
+                {
+                    "id": "11111111-2222-3333-4444-555555555555",
+                    "statement_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                    "insight_type": "warning",
+                    "category": "spending_spike",
+                    "title": "Food Spending Increased by 35%",
+                    "content": "Spending in Food rose sharply.",
+                    "severity": "medium",
+                    "metric": "+35.0%",
+                    "supporting_transactions": [
+                        {
+                            "id": "22222222-3333-4444-5555-666666666666",
+                            "date": "2026-09-15",
+                            "merchant": "Safeway",
+                            "amount": "-150.00",
+                            "category": "Food"
+                        }
+                    ],
+                    "metadata": {
+                        "category": "Food"
+                    },
+                    "generated_at": "2026-10-04T22:00:00Z"
+                }
+            ],
+            "total_count": 1,
+            "warning_count": 1,
+            "positive_count": 0,
+            "info_count": 0
+        }
+        """.data(using: .utf8)!
+
+        let decoder = FinLensJSONDecoder.makeStandard()
+        let res = try decoder.decode(InsightListResponse.self, from: json)
+
+        XCTAssertEqual(res.totalCount, 1)
+        XCTAssertEqual(res.warningCount, 1)
+        XCTAssertEqual(res.insights.count, 1)
+
+        let insight = res.insights[0]
+        XCTAssertEqual(insight.insightType, .warning)
+        XCTAssertEqual(insight.category, "spending_spike")
+        XCTAssertEqual(insight.metric, "+35.0%")
+        XCTAssertEqual(insight.supportingTransactions.count, 1)
+        XCTAssertEqual(insight.supportingTransactions[0].merchant, "Safeway")
+        XCTAssertEqual(insight.supportingTransactions[0].amount, Decimal(string: "-150.00")!)
+    }
 }
 

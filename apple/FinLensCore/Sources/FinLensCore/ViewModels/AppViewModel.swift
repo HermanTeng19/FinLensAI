@@ -19,6 +19,10 @@ public final class AppViewModel {
     public private(set) var unusualTransactions: [UnusualTransaction] = []
     public private(set) var statements: [Statement] = []
 
+    // AI Insights State
+    public private(set) var insights: [InsightItem] = []
+    public private(set) var isGeneratingInsights: Bool = false
+
     // Agent Chat State
 
     public private(set) var chatMessages: [ChatMessage] = []
@@ -34,9 +38,9 @@ public final class AppViewModel {
 
     private let apiClient: any APIClientProtocol
 
-    public init(apiClient: any APIClientProtocol = APIClient()) {
+    public init(apiClient: any APIClientProtocol = APIClient(), initialTab: NavigationTab = .dashboard) {
         self.apiClient = apiClient
-        self.selectedTab = .dashboard
+        self.selectedTab = initialTab
         Task {
             await self.loadAllData()
         }
@@ -69,9 +73,10 @@ public final class AppViewModel {
                 async let unTask = apiClient.fetchUnusualTransactions(statementId: nil)
                 async let txnsTask = apiClient.fetchTransactions(statementId: nil, limit: 100)
                 async let stmtsTask = apiClient.fetchStatements()
+                async let insTask = apiClient.fetchInsights(statementId: nil)
 
-                let (sum, cats, trends, rec, un, txns, stmts) = try await (
-                    sumTask, catTask, trendTask, recTask, unTask, txnsTask, stmtsTask
+                let (sum, cats, trends, rec, un, txns, stmts, ins) = try await (
+                    sumTask, catTask, trendTask, recTask, unTask, txnsTask, stmtsTask, insTask
                 )
 
                 self.summary = sum
@@ -81,6 +86,7 @@ public final class AppViewModel {
                 self.unusualTransactions = un
                 self.transactions = txns
                 self.statements = stmts
+                self.insights = ins
             } else {
                 self.loadOfflineSampleData()
             }
@@ -159,6 +165,26 @@ public final class AppViewModel {
         self.lastToolCalls.removeAll()
     }
 
+    public func loadInsights(statementId: UUID? = nil) async {
+        guard isServerConnected else { return }
+        do {
+            self.insights = try await apiClient.fetchInsights(statementId: statementId?.uuidString)
+        } catch {
+            self.errorMessage = error.localizedDescription
+        }
+    }
+
+    public func refreshInsights(statementId: UUID? = nil) async {
+        guard isServerConnected else { return }
+        self.isGeneratingInsights = true
+        do {
+            self.insights = try await apiClient.generateInsights(statementId: statementId?.uuidString)
+        } catch {
+            self.errorMessage = error.localizedDescription
+        }
+        self.isGeneratingInsights = false
+    }
+
 
     private func loadOfflineSampleData() {
         if self.transactions.isEmpty {
@@ -201,6 +227,36 @@ public final class AppViewModel {
                     amount: Decimal(string: "124.30") ?? 124.30,
                     percentage: 100.0,
                     transactionCount: 1
+                )
+            ]
+            self.insights = [
+                InsightItem(
+                    id: UUID(),
+                    statementId: nil,
+                    insightType: .positive,
+                    category: "cash_flow",
+                    title: "Positive Net Cash Flow",
+                    content: "Your net savings rate for the period is 96.1%. Total income ($3,200.00) comfortably exceeded total expenses ($124.30).",
+                    severity: .low,
+                    metric: "+96.1%",
+                    supportingTransactions: [
+                        SupportingTransaction(
+                            id: UUID(),
+                            date: "2026-09-30",
+                            merchant: "Payroll",
+                            amount: Decimal(string: "3200.00") ?? 3200.00,
+                            category: "Income"
+                        ),
+                        SupportingTransaction(
+                            id: UUID(),
+                            date: "2026-09-28",
+                            merchant: "Amazon",
+                            amount: Decimal(string: "-124.30") ?? -124.30,
+                            category: "Shopping"
+                        )
+                    ],
+                    metadata: [:],
+                    generatedAt: "2026-10-04T12:00:00Z"
                 )
             ]
         }

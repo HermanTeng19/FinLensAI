@@ -35,6 +35,8 @@ public protocol APIClientProtocol: Sendable {
     func uploadStatement(data: Data, filename: String) async throws -> Statement
     func deleteStatement(id: String) async throws
     func askAgent(message: String, history: [AgentHistoryItem]?) async throws -> AgentQueryResult
+    func fetchInsights(statementId: String?) async throws -> [InsightItem]
+    func generateInsights(statementId: String?) async throws -> [InsightItem]
 }
 
 
@@ -213,6 +215,57 @@ public actor APIClient: APIClientProtocol {
             toolCalls: toolCalls,
             grounded: dto.grounded
         )
+    }
+
+    public func fetchInsights(statementId: String? = nil) async throws -> [InsightItem] {
+        var components = URLComponents(url: baseURL.appendingPathComponent("api/insights"), resolvingAgainstBaseURL: true)!
+        if let sid = statementId, !sid.isEmpty {
+            components.queryItems = [URLQueryItem(name: "statement_id", value: sid)]
+        }
+        guard let url = components.url else { throw APIError.invalidURL }
+        let res: InsightListResponse = try await performRequest(url: url)
+        return res.insights
+    }
+
+    public func generateInsights(statementId: String? = nil) async throws -> [InsightItem] {
+        var components = URLComponents(url: baseURL.appendingPathComponent("api/insights/generate"), resolvingAgainstBaseURL: true)!
+        if let sid = statementId, !sid.isEmpty {
+            components.queryItems = [URLQueryItem(name: "statement_id", value: sid)]
+        }
+        guard let url = components.url else { throw APIError.invalidURL }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        if let sid = statementId, !sid.isEmpty {
+            let body = ["statement_id": sid]
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        }
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            throw APIError.networkError(error.localizedDescription)
+        }
+
+        guard let httpRes = response as? HTTPURLResponse else {
+            throw APIError.networkError("Non-HTTP response received.")
+        }
+
+        guard (200...299).contains(httpRes.statusCode) else {
+            let msg = String(data: data, encoding: .utf8) ?? "HTTP \(httpRes.statusCode)"
+            throw APIError.serverError(statusCode: httpRes.statusCode, message: msg)
+        }
+
+        do {
+            let res = try decoder.decode(InsightListResponse.self, from: data)
+            return res.insights
+        } catch {
+            throw APIError.decodingError("\(error)")
+        }
     }
 
     // MARK: - Private Helpers

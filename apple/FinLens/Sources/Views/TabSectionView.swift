@@ -229,90 +229,317 @@ struct TransactionsSectionView: View {
 }
 
 // MARK: - Insights Section
+enum InsightFilter: String, CaseIterable, Identifiable {
+    case all = "All"
+    case warnings = "Warnings"
+    case opportunities = "Opportunities"
+    case observations = "Observations"
+
+    var id: String { rawValue }
+}
+
 struct InsightsSectionView: View {
     @Environment(AppViewModel.self) private var viewModel
+    @State private var selectedFilter: InsightFilter = .all
+
+    var filteredInsights: [InsightItem] {
+        switch selectedFilter {
+        case .all:
+            return viewModel.insights
+        case .warnings:
+            return viewModel.insights.filter { $0.insightType == .warning }
+        case .opportunities:
+            return viewModel.insights.filter { $0.insightType == .positive }
+        case .observations:
+            return viewModel.insights.filter { $0.insightType == .info }
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // Recurring Subscriptions
-            VStack(alignment: .leading, spacing: 12) {
-                Label("Recurring Subscriptions & Bills", systemImage: "arrow.triangle.2.circlepath")
-                    .font(.headline)
-
-                if viewModel.recurringItems.isEmpty {
-                    Text("No recurring charges detected yet. Recurring charges like Netflix, utilities, or gym memberships will be detected automatically.")
+            // Header & Refresh Action
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("AI Financial Insights", systemImage: "sparkles")
+                        .font(.headline)
+                    Text("Deterministic attribution across cash flow, spikes, subscriptions, and anomalies.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.06)))
-                } else {
-                    ForEach(viewModel.recurringItems) { item in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(item.merchant)
-                                    .font(.subheadline.bold())
-                                HStack(spacing: 8) {
-                                    Text(item.frequency.capitalized)
-                                        .font(.caption2.bold())
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
-                                        .background(Capsule().fill(Color.blue.opacity(0.15)))
-                                        .foregroundStyle(.blue)
-                                    Text("\(item.occurrenceCount) charges")
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            Spacer()
-                            Text(CurrencyFormatter.format(amount: item.expectedAmount, currencyCode: "CAD"))
-                                .font(.body.monospacedDigit().bold())
-                        }
-                        .padding()
-                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.06)))
-                    }
                 }
+                Spacer()
+                Button {
+                    Task {
+                        await viewModel.refreshInsights()
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        if viewModel.isGeneratingInsights {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        Text("Regenerate")
+                            .font(.caption.bold())
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(Color.blue.opacity(0.12)))
+                    .foregroundStyle(.blue)
+                }
+                .buttonStyle(.plain)
+                .disabled(viewModel.isGeneratingInsights)
             }
 
-            // Unusual Transactions & Anomalies
-            VStack(alignment: .leading, spacing: 12) {
-                Label("Unusual Activity & Anomalies", systemImage: "exclamationmark.shield")
-                    .font(.headline)
+            // Stat Counter Pills
+            let totalCount = viewModel.insights.count
+            let warningCount = viewModel.insights.filter { $0.insightType == .warning }.count
+            let oppCount = viewModel.insights.filter { $0.insightType == .positive }.count
+            let supportingCount = viewModel.insights.reduce(0) { $0 + $1.supportingTransactions.count }
 
-                if viewModel.unusualTransactions.isEmpty {
-                    Text("No spending anomalies or duplicate charges detected.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.06)))
-                } else {
-                    ForEach(viewModel.unusualTransactions) { alert in
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Text(alert.merchant)
-                                    .font(.subheadline.bold())
-                                Spacer()
-                                Text(alert.severity.uppercased())
-                                    .font(.caption2.bold())
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Capsule().fill(alert.severity == "high" ? Color.red.opacity(0.15) : Color.orange.opacity(0.15)))
-                                    .foregroundStyle(alert.severity == "high" ? .red : .orange)
-                            }
-                            Text(alert.reason)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(CurrencyFormatter.format(amount: alert.amount, currencyCode: "CAD"))
-                                .font(.caption.monospacedDigit().bold())
-                                .foregroundStyle(.red)
-                        }
-                        .padding()
-                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.06)))
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 140))], spacing: 10) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Total Insights")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text("\(totalCount)")
+                            .font(.title3.bold().monospacedDigit())
                     }
+                    Spacer()
+                    Image(systemName: "sparkles.rectangle.stack")
+                        .foregroundStyle(.blue)
+                }
+                .padding(10)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.06)))
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Warnings")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text("\(warningCount)")
+                            .font(.title3.bold().monospacedDigit())
+                            .foregroundStyle(warningCount > 0 ? Color.red : Color.primary)
+                    }
+                    Spacer()
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(warningCount > 0 ? Color.red : Color.secondary)
+                }
+                .padding(10)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.06)))
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Opportunities")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text("\(oppCount)")
+                            .font(.title3.bold().monospacedDigit())
+                            .foregroundStyle(oppCount > 0 ? Color.green : Color.primary)
+                    }
+                    Spacer()
+                    Image(systemName: "leaf.fill")
+                        .foregroundStyle(oppCount > 0 ? Color.green : Color.secondary)
+                }
+                .padding(10)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.06)))
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Attributions")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text("\(supportingCount)")
+                            .font(.title3.bold().monospacedDigit())
+                            .foregroundStyle(.blue)
+                    }
+                    Spacer()
+                    Image(systemName: "checkmark.seal.fill")
+                        .foregroundStyle(.blue)
+                }
+                .padding(10)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.06)))
+            }
+
+            // Filter Segmented Control
+            Picker("Filter Insights", selection: $selectedFilter) {
+                ForEach(InsightFilter.allCases) { filter in
+                    Text(filter.rawValue).tag(filter)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            // Insights Card List
+            if filteredInsights.isEmpty {
+                ContentUnavailableView(
+                    "No Insights In This Category",
+                    systemImage: "sparkles",
+                    description: Text(selectedFilter == .all ? "Upload statements or click Regenerate to compute AI insights." : "No \(selectedFilter.rawValue.lowercased()) generated for this period.")
+                )
+                .padding(.vertical, 20)
+            } else {
+                ForEach(Array(filteredInsights.enumerated()), id: \.element.id) { index, insight in
+                    InsightCardView(insight: insight, initiallyExpanded: index == 0)
                 }
             }
         }
+    }
+}
+
+// MARK: - Insight Card View
+struct InsightCardView: View {
+    let insight: InsightItem
+    @State private var isAttributionExpanded: Bool
+
+    init(insight: InsightItem, initiallyExpanded: Bool = false) {
+        self.insight = insight
+        self._isAttributionExpanded = State(initialValue: initiallyExpanded)
+    }
+
+    private var typeColor: Color {
+        switch insight.insightType {
+        case .warning: return .red
+        case .positive: return .green
+        case .info: return .blue
+        }
+    }
+
+    private var severityColor: Color {
+        switch insight.severity {
+        case .high: return .red
+        case .medium: return .orange
+        case .low: return .blue
+        }
+    }
+
+    private var categoryDisplayName: String {
+        switch insight.category {
+        case "cash_flow": return "Cash Flow"
+        case "spending_spike": return "Spending Spike"
+        case "unusual_transaction": return "Anomaly"
+        case "subscription": return "Subscription"
+        case "large_purchase": return "Large Purchase"
+        case "category_dominance": return "Concentration"
+        default: return insight.category.replacingOccurrences(of: "_", with: " ").capitalized
+        }
+    }
+
+    private var categoryIcon: String {
+        switch insight.category {
+        case "cash_flow": return "banknote"
+        case "spending_spike": return "chart.line.uptrend.xyaxis"
+        case "unusual_transaction": return "exclamationmark.shield"
+        case "subscription": return "arrow.triangle.2.circlepath"
+        case "large_purchase": return "cart.fill"
+        case "category_dominance": return "pie.chart.fill"
+        default: return "sparkles"
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Card Header
+            HStack(spacing: 8) {
+                Label(categoryDisplayName, systemImage: categoryIcon)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(Color.secondary.opacity(0.10)))
+
+                if let metric = insight.metric {
+                    Text(metric)
+                        .font(.caption2.monospacedDigit().bold())
+                        .foregroundStyle(typeColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(typeColor.opacity(0.12)))
+                }
+
+                Spacer()
+
+                Text(insight.severity.displayName.uppercased())
+                    .font(.caption2.weight(.heavy))
+                    .foregroundStyle(severityColor)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 2.5)
+                    .background(Capsule().fill(severityColor.opacity(0.12)))
+            }
+
+            // Title & Content
+            VStack(alignment: .leading, spacing: 6) {
+                Text(insight.title)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Text(insight.content)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            // Grounded Attribution Section
+            if !insight.supportingTransactions.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isAttributionExpanded.toggle()
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.seal.fill")
+                                .foregroundStyle(.blue)
+                            Text("Grounded in \(insight.supportingTransactions.count) supporting transaction\(insight.supportingTransactions.count > 1 ? "s" : "")")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            Image(systemName: isAttributionExpanded ? "chevron.up" : "chevron.down")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    if isAttributionExpanded {
+                        VStack(spacing: 6) {
+                            ForEach(insight.supportingTransactions) { txn in
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        HStack(spacing: 6) {
+                                            Text(txn.merchant)
+                                                .font(.caption.weight(.semibold))
+                                                .foregroundStyle(.primary)
+                                            Text(txn.category)
+                                                .font(.caption2)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                        Text(txn.date)
+                                            .font(.caption2.monospacedDigit())
+                                            .foregroundStyle(.tertiary)
+                                    }
+                                    Spacer()
+                                    Text(CurrencyFormatter.format(amount: txn.amount, currencyCode: "CAD"))
+                                        .font(.caption.monospacedDigit().bold())
+                                        .foregroundStyle(txn.amount < 0 ? Color.primary : Color.green)
+                                }
+                                .padding(8)
+                                .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.04)))
+                            }
+                        }
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+                }
+                .padding(10)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.05)))
+            }
+        }
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.secondary.opacity(0.06)))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(severityColor.opacity(0.20), lineWidth: 1)
+        )
     }
 }
 

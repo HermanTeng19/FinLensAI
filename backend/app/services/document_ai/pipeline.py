@@ -86,6 +86,14 @@ async def process_statement_pipeline(
         job.completed_at = datetime.now(timezone.utc)
 
         await db.commit()
+
+        # Phase 9: Automatically generate insights for the newly ingested statement
+        try:
+            from app.services.insights.engine import generate_insights
+            await generate_insights(db, statement_id=statement.id)
+        except Exception:
+            pass  # Non-blocking for ingestion pipeline
+
         return len(created_txns)
 
     except Exception as e:

@@ -148,3 +148,39 @@ class AgentQueryResponse(BaseModel):
     tool_calls: List[ToolCallRecord] = []
     grounded: bool = True
 
+
+# Phase 9: AI Insights Schemas
+class SupportingTransactionSchema(BaseModel):
+    id: uuid.UUID
+    date: date
+    merchant: str
+    amount: Decimal
+    category: str
+
+
+class InsightCardSchema(BaseModel):
+    id: uuid.UUID
+    statement_id: Optional[uuid.UUID] = None
+    insight_type: str = Field(..., description="'warning', 'positive', or 'info'")
+    category: str = Field(..., description="Category like 'spending_spike', 'unusual_transaction', 'subscription', etc.")
+    title: str
+    content: str
+    severity: str = Field(default="medium", description="'high', 'medium', or 'low'")
+    metric: Optional[str] = None
+    supporting_transactions: List[SupportingTransactionSchema] = []
+    metadata: Dict[str, Any] = {}
+    generated_at: datetime
+
+
+class InsightListResponse(BaseModel):
+    insights: List[InsightCardSchema]
+    total_count: int
+    warning_count: int
+    positive_count: int
+    info_count: int
+
+
+class GenerateInsightsRequest(BaseModel):
+    statement_id: Optional[uuid.UUID] = None
+
+
