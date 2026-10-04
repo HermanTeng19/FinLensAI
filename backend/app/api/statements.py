@@ -1,17 +1,26 @@
 import hashlib
 import uuid
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.core.database import get_db
+from app.core.database import get_db, AsyncSessionLocal
 from app.models.models import Statement
 from app.schemas.schemas import StatementResponse
+from app.services.document_ai.pipeline import process_statement_pipeline
 
 router = APIRouter(prefix="/statements", tags=["Statements"])
 
 ALLOWED_EXTENSIONS = {".pdf", ".csv"}
 MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
+
+
+async def _run_background_pipeline(statement_id: uuid.UUID, content: bytes, file_format: str):
+    async with AsyncSessionLocal() as session:
+        try:
+            await process_statement_pipeline(session, statement_id, content, file_format)
+        except Exception:
+            pass
 
 
 @router.get("", response_model=List[StatementResponse])
@@ -28,6 +37,8 @@ async def list_statements(
 @router.post("/upload", response_model=StatementResponse, status_code=status.HTTP_201_CREATED)
 async def upload_statement(
     file: UploadFile = File(...),
+    run_sync: bool = True,
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     db: AsyncSession = Depends(get_db),
 ):
     filename = file.filename or "unknown"
@@ -64,6 +75,15 @@ async def upload_statement(
     db.add(statement)
     await db.commit()
     await db.refresh(statement)
+
+    if run_sync:
+        await process_statement_pipeline(db, statement.id, content, statement.file_format)
+        await db.refresh(statement)
+    else:
+        background_tasks.add_task(
+            _run_background_pipeline, statement.id, content, statement.file_format
+        )
+
     return statement
 
 

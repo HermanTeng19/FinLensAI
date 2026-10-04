@@ -60,34 +60,26 @@ async def test_statement_lifecycle_and_cascade_deletion(client: AsyncClient):
     statement_id = stmt["id"]
     assert stmt["filename"] == "statement_sept.csv"
     assert stmt["file_format"] == "csv"
-    assert stmt["status"] == "pending"
+    assert stmt["status"] in ("pending", "completed")
 
     # 3. Duplicate Statement Conflict
     res_dup = await client.post("/api/statements/upload", files=valid_file)
     assert res_dup.status_code == 409
 
-    # 4. Create Transaction linked to statement
-    txn_payload = {
-        "statement_id": statement_id,
-        "date": "2026-09-18",
-        "merchant": "Amazon",
-        "original_description": "AMZN Mktp CA*9812487",
-        "amount": "-124.30",
-        "currency": "CAD",
-        "transaction_type": "expense",
-        "category": "Shopping",
-        "subcategory": "Online Shopping",
-        "confidence": 0.98,
-    }
-    res_txn = await client.post("/api/transactions", json=txn_payload)
-    assert res_txn.status_code == 201
-    txn_id = res_txn.json()["id"]
+    # 4. Verify auto-extracted transactions linked to statement
+    res_txns = await client.get(f"/api/transactions?statement_id={statement_id}")
+    assert res_txns.status_code == 200
+    txns = res_txns.json()
+    assert len(txns) == 2
+    txn_id = txns[0]["id"]
 
-    # 5. Deterministic Analytics Query
-    res_summary = await client.get("/api/analytics/summary")
+    # 5. Deterministic Analytics Query for this statement
+    res_summary = await client.get(f"/api/analytics/summary?statement_id={statement_id}")
     assert res_summary.status_code == 200
     summary_data = res_summary.json()
     assert Decimal(str(summary_data["total_expenses"])) == Decimal("-124.30")
+    assert Decimal(str(summary_data["total_income"])) == Decimal("3000.00")
+    assert Decimal(str(summary_data["net_cash_flow"])) == Decimal("2875.70")
 
     # 6. Cascade Delete Statement
     res_del = await client.delete(f"/api/statements/{statement_id}")

@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 from typing import List, Optional
 from datetime import date
@@ -15,9 +16,12 @@ router = APIRouter(prefix="/analytics", tags=["Analytics"])
 async def get_financial_summary(
     start_date: Optional[date] = Query(None),
     end_date: Optional[date] = Query(None),
+    statement_id: Optional[uuid.UUID] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     query = select(Transaction)
+    if statement_id:
+        query = query.where(Transaction.statement_id == statement_id)
     if start_date:
         query = query.where(Transaction.date >= start_date)
     if end_date:
@@ -48,6 +52,7 @@ async def get_financial_summary(
 
 @router.get("/categories", response_model=List[CategorySpending])
 async def get_category_spending(
+    statement_id: Optional[uuid.UUID] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     # Only calculate expenses for spending breakdown
@@ -55,7 +60,12 @@ async def get_category_spending(
         Transaction.category,
         func.sum(Transaction.amount).label("total_amount"),
         func.count(Transaction.id).label("txn_count"),
-    ).where(Transaction.amount < 0).group_by(Transaction.category)
+    ).where(Transaction.amount < 0)
+
+    if statement_id:
+        query = query.where(Transaction.statement_id == statement_id)
+
+    query = query.group_by(Transaction.category)
 
     result = await db.execute(query)
     rows = result.all()
