@@ -89,3 +89,38 @@ class MonthlyTrend(BaseModel):
     total_income: Decimal
     total_expenses: Decimal
     net_cash_flow: Decimal
+
+
+class RecurringItem(BaseModel):
+    merchant: str
+    category: str
+    frequency: str  # weekly, bi-weekly, monthly, annual
+    expected_amount: Decimal
+    last_date: date
+    next_expected_date: Optional[date] = None
+    occurrence_count: int
+    confidence: float
+    is_subscription: bool = False
+    transaction_ids: List[uuid.UUID] = []
+
+
+class UnusualTransaction(BaseModel):
+    transaction_id: uuid.UUID
+    date: date
+    merchant: str
+    amount: Decimal
+    category: str
+    anomaly_type: str  # duplicate_charge, category_outlier, large_expense
+    reason: str
+    severity: str = "medium"  # low, medium, high
+
+
+class PeriodComparison(BaseModel):
+    current_expenses: Decimal
+    previous_expenses: Decimal
+    delta_expenses: Decimal
+    delta_percentage: float
+    current_income: Decimal
+    previous_income: Decimal
+    delta_income: Decimal
+    top_increased_categories: List[CategorySpending] = []
