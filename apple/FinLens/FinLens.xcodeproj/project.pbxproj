@@ -13,13 +13,17 @@
 		278BE9208F302639F3C1B027 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B065A88F94C5A5890076BC36 /* ContentView.swift */; };
 		31D9CC0BC67A669D855F354C /* TabSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560472F131491C1A5E21C45B /* TabSectionView.swift */; };
 		34E024FE96E7FADBFDA1C151 /* FinLensApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1850376DEA4720BB4C4F4 /* FinLensApp.swift */; };
+		381E57E5C3370880F1270784 /* MacTransactionsTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF44BF4E14063C845349A1B3 /* MacTransactionsTableView.swift */; };
+		58013BA9845A5EBCBF3FD477 /* TransactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707FFC9047C414E5151BE0E6 /* TransactionDetailView.swift */; };
 		58F3284DD28D14725011EE09 /* FinLensCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0D8D74FA81D8CF0D3185B222 /* FinLensCore */; };
 		693BF79BBBB006663588F901 /* iPadRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 934C77A15E9A72D4568F23DC /* iPadRootView.swift */; };
 		7A0362659A5D2F973DAAFCB8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 519CBC6A8E98349EE53282D1 /* Assets.xcassets */; };
 		885B400D68B3C0943FD2C26C /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E88BB4970DF167533D91CDE5 /* MacRootView.swift */; };
 		914FCBD4EF7D77814F754825 /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E88BB4970DF167533D91CDE5 /* MacRootView.swift */; };
+		93FB46EB6DC5934B9FDA2050 /* TransactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707FFC9047C414E5151BE0E6 /* TransactionDetailView.swift */; };
 		AAFF68FD8E9E63794C7C42F0 /* iOSRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E07AF25DB0371D21761C18 /* iOSRootView.swift */; };
 		C23D81F7309B628632EF6800 /* FinLensCore in Frameworks */ = {isa = PBXBuildFile; productRef = D4A5F3A3846170B4B73769B6 /* FinLensCore */; };
+		D0EDB60AAD338DB2997401C2 /* MacTransactionsTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF44BF4E14063C845349A1B3 /* MacTransactionsTableView.swift */; };
 		D36AAA36D4BEB03207774F58 /* TabSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560472F131491C1A5E21C45B /* TabSectionView.swift */; };
 		D7EA21C6B4FA68DF28093B28 /* iOSRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E07AF25DB0371D21761C18 /* iOSRootView.swift */; };
 		EDBA6014F3DD1A2A5C195C92 /* FinLensApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1850376DEA4720BB4C4F4 /* FinLensApp.swift */; };
@@ -29,12 +33,14 @@
 		4314378E3ECAB8E51E20DA42 /* FinLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		519CBC6A8E98349EE53282D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		560472F131491C1A5E21C45B /* TabSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSectionView.swift; sourceTree = "<group>"; };
+		707FFC9047C414E5151BE0E6 /* TransactionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionDetailView.swift; sourceTree = "<group>"; };
 		8E4DB416F79234971C7956DE /* FinLens.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FinLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		934C77A15E9A72D4568F23DC /* iPadRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadRootView.swift; sourceTree = "<group>"; };
 		A0A1850376DEA4720BB4C4F4 /* FinLensApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinLensApp.swift; sourceTree = "<group>"; };
 		A106E4CB18DE45E405B26CFF /* FinLensCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FinLensCore; path = ../FinLensCore; sourceTree = SOURCE_ROOT; };
 		A7E07AF25DB0371D21761C18 /* iOSRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSRootView.swift; sourceTree = "<group>"; };
 		B065A88F94C5A5890076BC36 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		BF44BF4E14063C845349A1B3 /* MacTransactionsTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacTransactionsTableView.swift; sourceTree = "<group>"; };
 		E88BB4970DF167533D91CDE5 /* MacRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacRootView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -73,7 +79,9 @@
 				A7E07AF25DB0371D21761C18 /* iOSRootView.swift */,
 				934C77A15E9A72D4568F23DC /* iPadRootView.swift */,
 				E88BB4970DF167533D91CDE5 /* MacRootView.swift */,
+				BF44BF4E14063C845349A1B3 /* MacTransactionsTableView.swift */,
 				560472F131491C1A5E21C45B /* TabSectionView.swift */,
+				707FFC9047C414E5151BE0E6 /* TransactionDetailView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -218,7 +226,9 @@
 				278BE9208F302639F3C1B027 /* ContentView.swift in Sources */,
 				34E024FE96E7FADBFDA1C151 /* FinLensApp.swift in Sources */,
 				914FCBD4EF7D77814F754825 /* MacRootView.swift in Sources */,
+				D0EDB60AAD338DB2997401C2 /* MacTransactionsTableView.swift in Sources */,
 				D36AAA36D4BEB03207774F58 /* TabSectionView.swift in Sources */,
+				93FB46EB6DC5934B9FDA2050 /* TransactionDetailView.swift in Sources */,
 				D7EA21C6B4FA68DF28093B28 /* iOSRootView.swift in Sources */,
 				137A019DE540EE765DF5AB17 /* iPadRootView.swift in Sources */,
 			);
@@ -231,7 +241,9 @@
 				08DF5BA7FE769AAC4166719F /* ContentView.swift in Sources */,
 				EDBA6014F3DD1A2A5C195C92 /* FinLensApp.swift in Sources */,
 				885B400D68B3C0943FD2C26C /* MacRootView.swift in Sources */,
+				381E57E5C3370880F1270784 /* MacTransactionsTableView.swift in Sources */,
 				31D9CC0BC67A669D855F354C /* TabSectionView.swift in Sources */,
+				58013BA9845A5EBCBF3FD477 /* TransactionDetailView.swift in Sources */,
 				AAFF68FD8E9E63794C7C42F0 /* iOSRootView.swift in Sources */,
 				693BF79BBBB006663588F901 /* iPadRootView.swift in Sources */,
 			);

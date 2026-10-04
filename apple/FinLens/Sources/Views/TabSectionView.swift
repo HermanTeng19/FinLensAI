@@ -1,8 +1,31 @@
 import SwiftUI
 import UniformTypeIdentifiers
 import FinLensCore
+#if canImport(UIKit)
+import UIKit
+#endif
+#if canImport(AppKit)
+import AppKit
+#endif
 
 typealias Transaction = FinLensCore.Transaction
+
+/// Cross-platform clipboard helper with haptic feedback
+@MainActor
+struct PlatformClipboard {
+    static func copy(_ text: String) {
+        #if os(iOS)
+        UIPasteboard.general.string = text
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.prepare()
+        generator.impactOccurred()
+        #elseif os(macOS)
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        #endif
+    }
+}
 
 struct TabSectionView: View {
     let tab: NavigationTab
@@ -10,85 +33,91 @@ struct TabSectionView: View {
     @State private var isShowingFileImporter: Bool = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                // Header Banner (Prominent on Dashboard, Compact on other tabs)
-                if tab == .dashboard {
-                    VStack(spacing: 8) {
-                        Image(systemName: "chart.line.uptrend.xyaxis.circle.fill")
-                            .font(.system(size: 48))
-                            .foregroundStyle(.tint)
-                            .symbolRenderingMode(.hierarchical)
-                            .padding(.top, 8)
+        Group {
+            if tab == .transactions {
+                TransactionsSectionView()
+            } else {
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Header Banner (Prominent on Dashboard, Compact on other tabs)
+                        if tab == .dashboard {
+                            VStack(spacing: 8) {
+                                Image(systemName: "chart.line.uptrend.xyaxis.circle.fill")
+                                    .font(.system(size: 48))
+                                    .foregroundStyle(.tint)
+                                    .symbolRenderingMode(.hierarchical)
+                                    .padding(.top, 8)
 
-                        Text(viewModel.appTitle)
-                            .font(.largeTitle.bold())
-                            .foregroundStyle(.primary)
+                                Text(viewModel.appTitle)
+                                    .font(.largeTitle.bold())
+                                    .foregroundStyle(.primary)
 
-                        Text(viewModel.appTagline)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
+                                Text(viewModel.appTagline)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
 
-                        // Backend Connection Status Indicator
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(viewModel.isServerConnected ? Color.green : Color.orange)
-                                .frame(width: 8, height: 8)
-                            Text(viewModel.isServerConnected ? "Backend Online (FastAPI + PostgreSQL)" : "Offline Mode (Local Cache)")
-                                .font(.caption2.bold())
-                                .foregroundStyle(viewModel.isServerConnected ? .green : .secondary)
+                                // Backend Connection Status Indicator
+                                HStack(spacing: 6) {
+                                    Circle()
+                                        .fill(viewModel.isServerConnected ? Color.green : Color.orange)
+                                        .frame(width: 8, height: 8)
+                                    Text(viewModel.isServerConnected ? "Backend Online (FastAPI + PostgreSQL)" : "Offline Mode (Local Cache)")
+                                        .font(.caption2.bold())
+                                        .foregroundStyle(viewModel.isServerConnected ? .green : .secondary)
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(Capsule().fill(Color.secondary.opacity(0.1)))
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.secondary.opacity(0.08))
+                            )
+                            .padding(.horizontal)
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(Capsule().fill(Color.secondary.opacity(0.1)))
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.secondary.opacity(0.08))
-                    )
-                    .padding(.horizontal)
-                }
 
-                if let error = viewModel.errorMessage {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                        Text(error)
-                            .font(.caption)
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        Button("Dismiss") {
-                            viewModel.dismissError()
+                        if let error = viewModel.errorMessage {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundStyle(.orange)
+                                Text(error)
+                                    .font(.caption)
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                                Button("Dismiss") {
+                                    viewModel.dismissError()
+                                }
+                                .font(.caption.bold())
+                            }
+                            .padding()
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.orange.opacity(0.12)))
+                            .padding(.horizontal)
                         }
-                        .font(.caption.bold())
-                    }
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.orange.opacity(0.12)))
-                    .padding(.horizontal)
-                }
 
-                // Current Tab Content
-                VStack(alignment: .leading, spacing: 16) {
-                    switch tab {
-                    case .dashboard:
-                        DashboardSectionView()
-                    case .transactions:
-                        TransactionsSectionView()
-                    case .insights:
-                        InsightsSectionView()
-                    case .askAI:
-                        AskAISectionView()
-                    case .profile:
-                        ProfileSectionView(isShowingFileImporter: $isShowingFileImporter)
+                        // Current Tab Content
+                        VStack(alignment: .leading, spacing: 16) {
+                            switch tab {
+                            case .dashboard:
+                                DashboardSectionView()
+                            case .transactions:
+                                EmptyView()
+                            case .insights:
+                                InsightsSectionView()
+                            case .askAI:
+                                AskAISectionView()
+                            case .profile:
+                                ProfileSectionView(isShowingFileImporter: $isShowingFileImporter)
+                            }
+                        }
+                        .padding(.horizontal)
                     }
+                    .padding(.top)
+                    .padding(.bottom, 70)
                 }
-                .padding(.horizontal)
             }
-            .padding(.top)
-            .padding(.bottom, 70)
         }
 
 
@@ -186,7 +215,33 @@ struct DashboardSectionView: View {
                     )
                 } else {
                     ForEach(viewModel.transactions.prefix(5)) { txn in
-                        TransactionRowView(transaction: txn)
+                        NavigationLink(destination: TransactionDetailView(transaction: txn)) {
+                            TransactionRowView(transaction: txn)
+                                .padding(10)
+                                .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.06)))
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            NavigationLink(destination: TransactionDetailView(transaction: txn)) {
+                                Label("Inspect Details", systemImage: "info.circle")
+                            }
+                            Button {
+                                PlatformClipboard.copy(txn.merchant)
+                            } label: {
+                                Label("Copy Merchant", systemImage: "doc.on.doc")
+                            }
+                            Button {
+                                PlatformClipboard.copy(CurrencyFormatter.format(amount: txn.amount, currencyCode: txn.currency))
+                            } label: {
+                                Label("Copy Amount", systemImage: "dollarsign.circle")
+                            }
+                            Button {
+                                let prompt = "Tell me more about my spending at \(txn.merchant) for \(CurrencyFormatter.format(amount: txn.amount, currencyCode: txn.currency))."
+                                viewModel.askAIAssistant(prompt: prompt)
+                            } label: {
+                                Label("Ask FinLens AI", systemImage: "sparkles")
+                            }
+                        }
                     }
                 }
             }
@@ -198,33 +253,140 @@ struct DashboardSectionView: View {
 struct TransactionsSectionView: View {
     @Environment(AppViewModel.self) private var viewModel
     @State private var searchText: String = ""
+    @State private var selectedCategory: String = "All"
+
+    private var availableCategories: [String] {
+        let set = Set(viewModel.transactions.map { $0.category })
+        return ["All"] + set.sorted()
+    }
 
     var filteredTransactions: [Transaction] {
-        if searchText.isEmpty {
-            return viewModel.transactions
-        } else {
-            return viewModel.transactions.filter {
-                $0.merchant.localizedCaseInsensitiveContains(searchText) ||
-                $0.category.localizedCaseInsensitiveContains(searchText) ||
-                $0.originalDescription.localizedCaseInsensitiveContains(searchText)
+        var list = viewModel.transactions
+
+        if selectedCategory != "All" {
+            list = list.filter { $0.category == selectedCategory }
+        }
+
+        if !searchText.isEmpty {
+            let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+            list = list.filter {
+                $0.merchant.localizedCaseInsensitiveContains(query) ||
+                $0.category.localizedCaseInsensitiveContains(query) ||
+                $0.originalDescription.localizedCaseInsensitiveContains(query)
             }
         }
+
+        return list
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            TextField("Search merchant or category...", text: $searchText)
-                .textFieldStyle(.roundedBorder)
-                .padding(.bottom, 4)
-
-            if filteredTransactions.isEmpty {
-                ContentUnavailableView.search(text: searchText)
-            } else {
-                ForEach(filteredTransactions) { txn in
-                    TransactionRowView(transaction: txn)
+        VStack(spacing: 0) {
+            // Category Filter Pills
+            if !viewModel.transactions.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(availableCategories, id: \.self) { cat in
+                            Button {
+                                selectedCategory = cat
+                            } label: {
+                                Text(cat)
+                                    .font(.caption.weight(selectedCategory == cat ? .bold : .regular))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(
+                                        Capsule()
+                                            .fill(selectedCategory == cat ? Color.accentColor : Color.secondary.opacity(0.12))
+                                    )
+                                    .foregroundStyle(selectedCategory == cat ? Color.white : Color.primary)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Filter by \(cat)")
+                            .accessibilityAddTraits(selectedCategory == cat ? [.isSelected] : [])
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
                 }
+                #if os(iOS)
+                .background(Color(uiColor: .systemGroupedBackground))
+                #else
+                .background(Color.secondary.opacity(0.04))
+                #endif
+                Divider()
+            }
+
+            // Transaction List with Swipe Actions & Details
+            if viewModel.transactions.isEmpty {
+                ContentUnavailableView(
+                    "No Transactions Yet",
+                    systemImage: "list.bullet.rectangle",
+                    description: Text("Upload a bank statement in Profile to view parsed transactions.")
+                )
+                .frame(maxHeight: .infinity)
+            } else if filteredTransactions.isEmpty {
+                ContentUnavailableView.search(text: searchText.isEmpty ? selectedCategory : searchText)
+                    .frame(maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(filteredTransactions) { txn in
+                        NavigationLink(destination: TransactionDetailView(transaction: txn)) {
+                            TransactionRowView(transaction: txn)
+                        }
+                        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                            Button {
+                                let prompt = "Analyze transaction: \(txn.merchant) on \(txn.date) for \(CurrencyFormatter.format(amount: txn.amount, currencyCode: txn.currency)). Is this recurring, unusual, or expected?"
+                                viewModel.askAIAssistant(prompt: prompt)
+                            } label: {
+                                Label("Ask AI", systemImage: "sparkles")
+                            }
+                            .tint(.blue)
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button {
+                                PlatformClipboard.copy(txn.merchant)
+                            } label: {
+                                Label("Copy Merchant", systemImage: "doc.on.doc")
+                            }
+                            .tint(.gray)
+
+                            Button {
+                                PlatformClipboard.copy(CurrencyFormatter.format(amount: txn.amount, currencyCode: txn.currency))
+                            } label: {
+                                Label("Copy Amount", systemImage: "dollarsign.circle")
+                            }
+                            .tint(.indigo)
+                        }
+                        .contextMenu {
+                            NavigationLink(destination: TransactionDetailView(transaction: txn)) {
+                                Label("Inspect Details", systemImage: "info.circle")
+                            }
+                            Button {
+                                PlatformClipboard.copy(txn.merchant)
+                            } label: {
+                                Label("Copy Merchant", systemImage: "doc.on.doc")
+                            }
+                            Button {
+                                PlatformClipboard.copy(CurrencyFormatter.format(amount: txn.amount, currencyCode: txn.currency))
+                            } label: {
+                                Label("Copy Amount", systemImage: "dollarsign.circle")
+                            }
+                            Button {
+                                let prompt = "Tell me more about my transaction at \(txn.merchant) for \(CurrencyFormatter.format(amount: txn.amount, currencyCode: txn.currency))."
+                                viewModel.askAIAssistant(prompt: prompt)
+                            } label: {
+                                Label("Ask FinLens AI", systemImage: "sparkles")
+                            }
+                        }
+                    }
+                }
+                #if os(iOS)
+                .listStyle(.insetGrouped)
+                #else
+                .listStyle(.inset(alternatesRowBackgrounds: true))
+                #endif
             }
         }
+        .searchable(text: $searchText, prompt: "Search merchant or category...")
     }
 }
 
@@ -647,6 +809,21 @@ struct AskAISectionView: View {
             }
             .padding(.top, 4)
         }
+        .onAppear {
+            consumePendingPrompt()
+        }
+        .onChange(of: viewModel.pendingPrompt) { _, newPrompt in
+            if newPrompt != nil {
+                consumePendingPrompt()
+            }
+        }
+    }
+
+    private func consumePendingPrompt() {
+        guard let prompt = viewModel.pendingPrompt, !prompt.isEmpty else { return }
+        viewModel.clearPendingPrompt()
+        queryText = prompt
+        submitCurrentQuery()
     }
 
     private func submitCurrentQuery() {
@@ -991,8 +1168,10 @@ struct TransactionRowView: View {
                 .font(.body.monospacedDigit().bold())
                 .foregroundStyle(transaction.amount < 0 ? Color.primary : Color.green)
         }
-        .padding()
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.06)))
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(transaction.merchant), \(transaction.category), \(CurrencyFormatter.format(amount: transaction.amount, currencyCode: transaction.currency)), on \(transaction.date.formatted(date: .abbreviated, time: .omitted))")
+        .accessibilityHint("Double tap to inspect full transaction details.")
     }
 }
 
@@ -1016,5 +1195,7 @@ struct MetricCard: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.08)))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title): \(CurrencyFormatter.format(amount: amount, currencyCode: currency))")
     }
 }

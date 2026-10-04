@@ -34,6 +34,11 @@ public final class AppViewModel {
     public private(set) var lastResetResult: DataResetResult? = nil
     public private(set) var isResettingData: Bool = false
 
+    // User Navigation & Interaction State
+    public var pendingPrompt: String? = nil
+    public var isShowingFileImporter: Bool = false
+    public var selectedTransactionId: String? = nil
+
     // Network & UI Status
     public private(set) var isServerConnected: Bool = false
     public private(set) var isLoading: Bool = false
@@ -54,6 +59,19 @@ public final class AppViewModel {
 
     public func selectTab(_ tab: NavigationTab) {
         self.selectedTab = tab
+    }
+
+    public func selectTransaction(id: String?) {
+        self.selectedTransactionId = id
+    }
+
+    public func askAIAssistant(prompt: String) {
+        self.pendingPrompt = prompt
+        self.selectTab(.askAI)
+    }
+
+    public func clearPendingPrompt() {
+        self.pendingPrompt = nil
     }
 
     public func dismissError() {
