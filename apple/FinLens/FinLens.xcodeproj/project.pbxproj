@@ -1,0 +1,507 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		08DF5BA7FE769AAC4166719F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B065A88F94C5A5890076BC36 /* ContentView.swift */; };
+		137A019DE540EE765DF5AB17 /* iPadRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 934C77A15E9A72D4568F23DC /* iPadRootView.swift */; };
+		23F9A5754E969724072AB7FB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 519CBC6A8E98349EE53282D1 /* Assets.xcassets */; };
+		278BE9208F302639F3C1B027 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B065A88F94C5A5890076BC36 /* ContentView.swift */; };
+		31D9CC0BC67A669D855F354C /* TabSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560472F131491C1A5E21C45B /* TabSectionView.swift */; };
+		34E024FE96E7FADBFDA1C151 /* FinLensApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1850376DEA4720BB4C4F4 /* FinLensApp.swift */; };
+		58F3284DD28D14725011EE09 /* FinLensCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0D8D74FA81D8CF0D3185B222 /* FinLensCore */; };
+		693BF79BBBB006663588F901 /* iPadRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 934C77A15E9A72D4568F23DC /* iPadRootView.swift */; };
+		7A0362659A5D2F973DAAFCB8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 519CBC6A8E98349EE53282D1 /* Assets.xcassets */; };
+		885B400D68B3C0943FD2C26C /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E88BB4970DF167533D91CDE5 /* MacRootView.swift */; };
+		914FCBD4EF7D77814F754825 /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E88BB4970DF167533D91CDE5 /* MacRootView.swift */; };
+		AAFF68FD8E9E63794C7C42F0 /* iOSRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E07AF25DB0371D21761C18 /* iOSRootView.swift */; };
+		C23D81F7309B628632EF6800 /* FinLensCore in Frameworks */ = {isa = PBXBuildFile; productRef = D4A5F3A3846170B4B73769B6 /* FinLensCore */; };
+		D36AAA36D4BEB03207774F58 /* TabSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560472F131491C1A5E21C45B /* TabSectionView.swift */; };
+		D7EA21C6B4FA68DF28093B28 /* iOSRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E07AF25DB0371D21761C18 /* iOSRootView.swift */; };
+		EDBA6014F3DD1A2A5C195C92 /* FinLensApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1850376DEA4720BB4C4F4 /* FinLensApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		4314378E3ECAB8E51E20DA42 /* FinLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		519CBC6A8E98349EE53282D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		560472F131491C1A5E21C45B /* TabSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSectionView.swift; sourceTree = "<group>"; };
+		8E4DB416F79234971C7956DE /* FinLens.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FinLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		934C77A15E9A72D4568F23DC /* iPadRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadRootView.swift; sourceTree = "<group>"; };
+		A0A1850376DEA4720BB4C4F4 /* FinLensApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinLensApp.swift; sourceTree = "<group>"; };
+		A106E4CB18DE45E405B26CFF /* FinLensCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FinLensCore; path = ../FinLensCore; sourceTree = SOURCE_ROOT; };
+		A7E07AF25DB0371D21761C18 /* iOSRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSRootView.swift; sourceTree = "<group>"; };
+		B065A88F94C5A5890076BC36 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		E88BB4970DF167533D91CDE5 /* MacRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacRootView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BD4822B61304F21472052839 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				58F3284DD28D14725011EE09 /* FinLensCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CB0BBA0B63E0C96AF8C9429E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C23D81F7309B628632EF6800 /* FinLensCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		162DC3B85BF35A1EED2440A4 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				A106E4CB18DE45E405B26CFF /* FinLensCore */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		3EA468D5A31697CDE4A8BB13 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B065A88F94C5A5890076BC36 /* ContentView.swift */,
+				A7E07AF25DB0371D21761C18 /* iOSRootView.swift */,
+				934C77A15E9A72D4568F23DC /* iPadRootView.swift */,
+				E88BB4970DF167533D91CDE5 /* MacRootView.swift */,
+				560472F131491C1A5E21C45B /* TabSectionView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		3EE45CBD23E4CD235FE3F805 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8E4DB416F79234971C7956DE /* FinLens.app */,
+				4314378E3ECAB8E51E20DA42 /* FinLens.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		493AFE19FC695165AE8C5EB6 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				A0A1850376DEA4720BB4C4F4 /* FinLensApp.swift */,
+				3EA468D5A31697CDE4A8BB13 /* Views */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		9AB87D61F24A1BA2AE118CC4 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				519CBC6A8E98349EE53282D1 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		CBB4D4939E31B15E1591B274 = {
+			isa = PBXGroup;
+			children = (
+				162DC3B85BF35A1EED2440A4 /* Packages */,
+				9AB87D61F24A1BA2AE118CC4 /* Resources */,
+				493AFE19FC695165AE8C5EB6 /* Sources */,
+				3EE45CBD23E4CD235FE3F805 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9982E6B6EB0066572A44A226 /* FinLens_iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B8C24ABFABAFE38EB9A5CF2A /* Build configuration list for PBXNativeTarget "FinLens_iOS" */;
+			buildPhases = (
+				3F0A3A026191737F19E9585D /* Sources */,
+				7D5B3F909595C22B748C2A88 /* Resources */,
+				CB0BBA0B63E0C96AF8C9429E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FinLens_iOS;
+			packageProductDependencies = (
+				D4A5F3A3846170B4B73769B6 /* FinLensCore */,
+			);
+			productName = FinLens_iOS;
+			productReference = 8E4DB416F79234971C7956DE /* FinLens.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E5DE5F2C33ECD6B3C1CA7304 /* FinLens_macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F16772A60FB5241E62F1DC26 /* Build configuration list for PBXNativeTarget "FinLens_macOS" */;
+			buildPhases = (
+				C221CEF88D678B884C0F3E7A /* Sources */,
+				389129D072C598A97994DDF6 /* Resources */,
+				BD4822B61304F21472052839 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FinLens_macOS;
+			packageProductDependencies = (
+				0D8D74FA81D8CF0D3185B222 /* FinLensCore */,
+			);
+			productName = FinLens_macOS;
+			productReference = 4314378E3ECAB8E51E20DA42 /* FinLens.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E3210359AD694981BEEF4D18 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = C1E847A542C9D867CFA1DDBE /* Build configuration list for PBXProject "FinLens" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = CBB4D4939E31B15E1591B274;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				24E0A7B3339E311239767205 /* XCLocalSwiftPackageReference "../FinLensCore" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 3EE45CBD23E4CD235FE3F805 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9982E6B6EB0066572A44A226 /* FinLens_iOS */,
+				E5DE5F2C33ECD6B3C1CA7304 /* FinLens_macOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		389129D072C598A97994DDF6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7A0362659A5D2F973DAAFCB8 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7D5B3F909595C22B748C2A88 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				23F9A5754E969724072AB7FB /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3F0A3A026191737F19E9585D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				278BE9208F302639F3C1B027 /* ContentView.swift in Sources */,
+				34E024FE96E7FADBFDA1C151 /* FinLensApp.swift in Sources */,
+				914FCBD4EF7D77814F754825 /* MacRootView.swift in Sources */,
+				D36AAA36D4BEB03207774F58 /* TabSectionView.swift in Sources */,
+				D7EA21C6B4FA68DF28093B28 /* iOSRootView.swift in Sources */,
+				137A019DE540EE765DF5AB17 /* iPadRootView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C221CEF88D678B884C0F3E7A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				08DF5BA7FE769AAC4166719F /* ContentView.swift in Sources */,
+				EDBA6014F3DD1A2A5C195C92 /* FinLensApp.swift in Sources */,
+				885B400D68B3C0943FD2C26C /* MacRootView.swift in Sources */,
+				31D9CC0BC67A669D855F354C /* TabSectionView.swift in Sources */,
+				AAFF68FD8E9E63794C7C42F0 /* iOSRootView.swift in Sources */,
+				693BF79BBBB006663588F901 /* iPadRootView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		06CA607B2372838FA0C8FF32 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "FinLens AI";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.finlens.app;
+				PRODUCT_NAME = FinLens;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		0A0E5B875EB4CCD8AD2C0280 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "FinLens AI";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.finlens.app;
+				PRODUCT_NAME = FinLens;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		69B308FD18CFC27B5D67E924 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "FinLens AI";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.finlens.app;
+				PRODUCT_NAME = FinLens;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		6ABD70C50B90FBD515C15699 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		AC803B74DEC8C3C1A6F0B692 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		CF7AC8C3D563A982A6F25A96 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "FinLens AI";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.finlens.app;
+				PRODUCT_NAME = FinLens;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B8C24ABFABAFE38EB9A5CF2A /* Build configuration list for PBXNativeTarget "FinLens_iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0A0E5B875EB4CCD8AD2C0280 /* Debug */,
+				CF7AC8C3D563A982A6F25A96 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C1E847A542C9D867CFA1DDBE /* Build configuration list for PBXProject "FinLens" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC803B74DEC8C3C1A6F0B692 /* Debug */,
+				6ABD70C50B90FBD515C15699 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F16772A60FB5241E62F1DC26 /* Build configuration list for PBXNativeTarget "FinLens_macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				06CA607B2372838FA0C8FF32 /* Debug */,
+				69B308FD18CFC27B5D67E924 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		24E0A7B3339E311239767205 /* XCLocalSwiftPackageReference "../FinLensCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../FinLensCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0D8D74FA81D8CF0D3185B222 /* FinLensCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FinLensCore;
+		};
+		D4A5F3A3846170B4B73769B6 /* FinLensCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FinLensCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = E3210359AD694981BEEF4D18 /* Project object */;
+}

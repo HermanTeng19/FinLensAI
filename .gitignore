@@ -1,0 +1,99 @@
+# ==================================================
+# FinLens AI - Git Ignore
+# ==================================================
+
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon\r
+._*
+.Spotlight-V100
+.Trashes
+
+# Xcode & Apple Multiplatform
+build/
+DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+*.xcscmblueprint
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/xcode/xcuserdata/
+Packages/
+Package.pins
+Package.resolved
+
+# Python & uv
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python Tooling Caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Sensitive Information & Environment Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.p12
+
+# Local Database & Storage
+*.sqlite
+*.sqlite3
+*.db
+local_storage/
+uploads/
+statements_cache/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*~
