@@ -43,6 +43,37 @@ public struct Transaction: Identifiable, Sendable, Codable, Equatable, Hashable 
         self.confidence = confidence
         self.sourcePage = sourcePage
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case statementId
+        case date
+        case merchant
+        case originalDescription
+        case amount
+        case currency
+        case transactionType
+        case category
+        case subcategory
+        case confidence
+        case sourcePage
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.statementId = try container.decodeIfPresent(String.self, forKey: .statementId)
+        self.date = try container.decode(Date.self, forKey: .date)
+        self.merchant = try container.decode(String.self, forKey: .merchant)
+        self.originalDescription = try container.decode(String.self, forKey: .originalDescription)
+        self.amount = try container.decodeFlexibleDecimal(forKey: .amount)
+        self.currency = try container.decodeIfPresent(String.self, forKey: .currency) ?? "CAD"
+        self.transactionType = try container.decode(TransactionType.self, forKey: .transactionType)
+        self.category = try container.decode(String.self, forKey: .category)
+        self.subcategory = try container.decodeIfPresent(String.self, forKey: .subcategory)
+        self.confidence = try container.decodeIfPresent(Double.self, forKey: .confidence) ?? 1.0
+        self.sourcePage = try container.decodeIfPresent(Int.self, forKey: .sourcePage)
+    }
 }
 
 public enum TransactionType: String, Sendable, Codable, Equatable, Hashable, CaseIterable {
