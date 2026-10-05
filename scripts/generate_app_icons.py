@@ -42,26 +42,39 @@ def get_gemini_api_key() -> str:
 
 
 IOS_PROMPT = """
-A graphic design of a central luminous financial optic lens emblem on a full-bleed dark navy blue background.
-Visual focal point: In the center of the image, a glowing circular optical lens and camera aperture iris made of layered translucent frosted glass and sleek silver titanium ring, focusing cyan, turquoise and emerald light rays into an upward-pointing financial prism.
-Background rules:
-- The entire image from edge to edge is a continuous dark midnight blue gradient.
-- The dark blue background extends fully into all four corners of the 1024x1024 image.
-- Flat square canvas, sharp 90 degree corners, complete full bleed.
-- DO NOT draw any rounded rectangle, DO NOT draw a squircle shape, DO NOT round the corners, DO NOT leave white or light margins in the corners.
-- Single focal point, minimal, centered, occupying 75% of the frame.
-- Strictly NO text, NO numbers, NO letters, NO watermark.
+In the EXACT visual 3D glassmorphism style, materials, lighting, and color scheme of the reference image:
+Create a minimalist, single focal point 3D glassmorphic app icon.
+Visual subject:
+A stack of three elegant, translucent frosted glass sheets in isometric perspective, smoothly curving and sweeping upward into three ascending vertical rounded bar chart pillars (representing financial statements turning into growth insights).
+Materials & colors:
+- Top sheet: translucent white frosted glass with glowing edges.
+- Middle sheet: translucent sky blue frosted glass.
+- Bottom sheet: translucent soft purple frosted glass.
+- Ascending vertical pillars: bright cyan and turquoise gradient frosted glass.
+- Subsurface scattering, delicate inner ambient glow, realistic soft shadows cast on the layers below.
+Background:
+- Seamless full-bleed gradient: bright cyan-blue in top-left, rich royal blue in center, transitioning to vibrant violet-purple in bottom-right.
+- Pure square canvas, sharp 90-degree corners, no rounded border, no squircle mask.
+STRICT NEGATIVE CONSTRAINTS:
+- Absolutely NO text, NO words, NO letters, NO labels, NO typography, NO watermark.
+- NO dollar signs, NO currency symbols, NO coin icons, NO magnifying glass handles.
+- Centered composition, occupying 75% to 80% of canvas with 20% clean negative space margin around borders.
 """.strip()
 
 MACOS_PROMPT = """
-An ultra-premium, high-fidelity official macOS desktop application icon for 'FinLens AI', a professional personal finance analytics and insight studio.
-Visual focal point: A precision-engineered 3D optical lens instrument emblem. Features a multi-layered aerospace-grade dark titanium bezel, knurled metal dial edge, anti-reflective optical glass elements with subtle violet-cyan lens flare coating, revealing an intricate financial prism core with delicate volumetric caustics.
-Composition rules:
-- Strictly square canvas with sharp 90-degree square corners, full-bleed edge-to-edge deep dark charcoal and slate sapphire gradient background. DO NOT draw rounded corners, DO NOT cut off the corners, DO NOT draw a squircle tile frame, the background must fill the entire square canvas to all edges.
-- Single focal point, tactile depth, studio top-down key lighting, subtle ambient occlusion, realistic ray-traced glass and brushed metal shaders.
-- Strictly NO text, NO typography, NO words, NO letters, NO numbers, NO logo text.
-- Perfectly centered composition with ample negative space (20% clean margin around the edges), subject occupies 75% to 80% of the canvas.
-- Desktop-class pro tool aesthetics, elegant, sophisticated, pristine Apple HIG design.
+In the EXACT visual 3D glassmorphism style, materials, and composition of the reference image:
+Create the macOS desktop edition of this app icon for FinLens AI.
+Visual subject:
+The same iconic stack of three elegant, translucent frosted glass sheets in isometric perspective, smoothly curving and sweeping upward into three ascending vertical rounded bar chart pillars.
+macOS Desktop style tuning:
+- Keep the exact same iconic shape and translucent frosted glass material (subsurface scattering, glowing rim light, clean minimal curves).
+- Background: A slightly deeper, richer, ultra-sophisticated midnight sapphire and royal blue gradient, tailored for the macOS desktop dock.
+- Slightly crisper refractive glass highlights and gentle top-down key lighting.
+- Full-bleed square canvas, sharp 90-degree square corners, no rounded corners, no squircle mask.
+STRICT NEGATIVE CONSTRAINTS:
+- Absolutely NO text, NO words, NO letters, NO labels, NO typography, NO watermark.
+- NO dollar signs, NO currency symbols.
+- Centered composition, occupying 75% to 80% of canvas with 20% clean negative space margin around borders.
 """.strip()
 
 
