@@ -42,6 +42,14 @@ echo ""
 # 2. Backend Pytest & Code Coverage
 # ------------------------------------------------------------------------------
 echo "==> [2/5] Running Backend Unit & E2E Lifecycle Tests with Pytest..."
+
+# Ensure local test database is accessible
+if ! nc -z localhost 5432 2>/dev/null; then
+    echo "--> Starting local PostgreSQL test container via Docker..."
+    docker compose -f "${ROOT_DIR}/infrastructure/docker-compose.yml" up -d db
+    sleep 2
+fi
+
 if [ -f ".venv/bin/pytest" ]; then
     PYTEST_BIN=".venv/bin/pytest"
 else

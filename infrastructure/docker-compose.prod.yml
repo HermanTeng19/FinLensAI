@@ -1,0 +1,79 @@
+# =============================================================
+# FinLens AI Production Compose Stack
+# =============================================================
+
+services:
+  # 1. PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: finlens-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-finlens_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finlens_password}
+      POSTGRES_DB: ${POSTGRES_DB:-finlens_db}
+    volumes:
+      - finlens_pgdata_prod:/var/lib/postgresql/data
+    networks:
+      - internal_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-finlens_user} -d ${POSTGRES_DB:-finlens_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # 2. FastAPI Backend Intelligence Engine
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    image: finlens-backend:prod
+    container_name: finlens-backend-prod
+    restart: always
+    environment:
+      PROJECT_NAME: "FinLens AI Backend"
+      ENVIRONMENT: "production"
+      API_V1_PREFIX: "/api"
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-finlens_user}:${POSTGRES_PASSWORD:-finlens_password}@db:5432/${POSTGRES_DB:-finlens_db}"
+      SECRET_KEY: ${SECRET_KEY:-finlens-production-cryptographic-secret-key-32b}
+      CORS_ORIGINS: ${CORS_ORIGINS:-["*"]}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal_network
+      - gateway_network
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # 3. Nginx Reverse Proxy & Security Gateway
+  gateway:
+    image: nginx:1.27-alpine
+    container_name: finlens-gateway-prod
+    restart: always
+    ports:
+      - "${PORT:-8088}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+    networks:
+      - gateway_network
+
+networks:
+  internal_network:
+    driver: bridge
+    internal: true
+  gateway_network:
+    driver: bridge
+
+volumes:
+  finlens_pgdata_prod:
+    name: finlens_pgdata_prod
