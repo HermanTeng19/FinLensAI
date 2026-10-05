@@ -7,6 +7,7 @@ from decimal import Decimal
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.telemetry import metrics_collector
 from app.models.models import Insight, Transaction
 from app.schemas.schemas import (
     InsightCardSchema,
@@ -342,8 +343,16 @@ async def generate_insights(
             generated_at=item.generated_at,
         )
         db.add(db_insight)
-
     await db.commit()
+
+    severity_counts = defaultdict(int)
+    for item in generated:
+        severity_counts[item.severity] += 1
+    metrics_collector.record_insights_generated(
+        count=len(generated),
+        severity_counts=dict(severity_counts),
+    )
+
     return generated
 
 

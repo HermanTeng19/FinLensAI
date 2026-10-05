@@ -1,9 +1,11 @@
+import time
 import uuid
 from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.telemetry import metrics_collector
 from app.models.models import ProcessingJob, Statement, Transaction
 from app.services.document_ai.categorizer import Categorizer
 from app.services.document_ai.merchant_normalizer import MerchantNormalizer
@@ -39,6 +41,7 @@ async def process_statement_pipeline(
     db.add(job)
     await db.commit()
 
+    start_time = time.perf_counter()
     try:
         # 2. Document extraction
         candidates: list[ExtractedTransactionCandidate] = []
@@ -92,6 +95,13 @@ async def process_statement_pipeline(
 
         await db.commit()
 
+        duration_ms = (time.perf_counter() - start_time) * 1000
+        metrics_collector.record_statement_processed(
+            transactions_count=len(created_txns),
+            duration_ms=duration_ms,
+            success=True,
+        )
+
         # Phase 9: Automatically generate insights for the newly ingested statement
         try:
             from app.services.insights.engine import generate_insights
@@ -103,6 +113,12 @@ async def process_statement_pipeline(
         return len(created_txns)
 
     except Exception as e:
+        duration_ms = (time.perf_counter() - start_time) * 1000
+        metrics_collector.record_statement_processed(
+            transactions_count=0,
+            duration_ms=duration_ms,
+            success=False,
+        )
         await db.rollback()
         statement.status = "failed"
         job.status = "failed"

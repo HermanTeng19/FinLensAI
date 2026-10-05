@@ -133,4 +133,56 @@ public final class MockAPIClient: APIClientProtocol, @unchecked Sendable {
         if shouldFailInsights { throw APIError.serverError(statusCode: 500, message: "Insight generation failed") }
         return try await fetchInsights(statementId: statementId)
     }
+
+    public func fetchSystemMetrics() async throws -> SystemMetrics {
+        SystemMetrics(
+            uptimeSeconds: 120.0,
+            system: SystemProcessMetrics(processId: 100, memoryRssMb: 45.2, cpuPercent: 1.5),
+            http: HTTPTelemetryMetrics(
+                totalRequests: 10,
+                statusCodes: ["200": 10],
+                topEndpoints: ["GET /health": 10],
+                latencyMs: HTTPLatencyMetrics(avg: 5.0, p50: 4.5, p95: 8.0, p99: 9.0)
+            ),
+            documentAi: DocumentAIMetrics(
+                statementsProcessed: 2,
+                statementsFailed: 0,
+                transactionsExtracted: 25,
+                avgParsingDurationMs: 45.0
+            ),
+            agentAi: AgentAIMetrics(
+                queriesTotal: 5,
+                groundedTotal: 5,
+                groundingRate: 100.0,
+                avgQueryLatencyMs: 20.0,
+                p95QueryLatencyMs: 25.0,
+                toolExecutions: ["search_transactions": 5],
+                toolErrors: [:]
+            ),
+            insights: InsightsMetrics(totalGenerated: 2, bySeverity: ["medium": 2])
+        )
+    }
+
+    public func fetchAITraces(limit: Int?) async throws -> [AITraceRecord] {
+        [
+            AITraceRecord(
+                traceId: "trace_mock_1",
+                correlationId: "cid_mock_1",
+                timestamp: "2026-10-04T22:30:00Z",
+                query: "What is my spending?",
+                durationMs: 15.0,
+                grounded: true,
+                toolSpans: [
+                    ToolExecutionSpanDTO(
+                        toolName: "get_spending_by_category",
+                        outputSummary: "categories: Food",
+                        durationMs: 15.0,
+                        success: true,
+                        errorMessage: nil
+                    )
+                ],
+                responsePreview: "You spent $1,200 on Food."
+            )
+        ]
+    }
 }

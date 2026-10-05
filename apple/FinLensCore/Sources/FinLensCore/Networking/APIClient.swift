@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 public enum APIError: Error, LocalizedError, Sendable {
     case invalidURL
@@ -39,6 +40,8 @@ public protocol APIClientProtocol: Sendable {
     func askAgent(message: String, history: [AgentHistoryItem]?) async throws -> AgentQueryResult
     func fetchInsights(statementId: String?) async throws -> [InsightItem]
     func generateInsights(statementId: String?) async throws -> [InsightItem]
+    func fetchSystemMetrics() async throws -> SystemMetrics
+    func fetchAITraces(limit: Int?) async throws -> [AITraceRecord]
 }
 
 
@@ -58,8 +61,9 @@ public actor APIClient: APIClientProtocol {
 
     public func fetchHealth() async throws -> Bool {
         let url = baseURL.appendingPathComponent("health")
-        let (data, response) = try await session.data(from: url)
-        guard let httpRes = response as? HTTPURLResponse, httpRes.statusCode == 200 else {
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        guard let (data, httpRes) = try? await sendRequest(request), httpRes.statusCode == 200 else {
             return false
         }
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
@@ -152,10 +156,7 @@ public actor APIClient: APIClientProtocol {
 
         request.httpBody = body
 
-        let (responseData, response) = try await session.data(for: request)
-        guard let httpRes = response as? HTTPURLResponse else {
-            throw APIError.networkError("Invalid HTTP response.")
-        }
+        let (responseData, httpRes) = try await sendRequest(request)
 
         if httpRes.statusCode == 201 || httpRes.statusCode == 200 {
             do {
@@ -174,10 +175,7 @@ public actor APIClient: APIClientProtocol {
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
 
-        let (responseData, response) = try await session.data(for: request)
-        guard let httpRes = response as? HTTPURLResponse else {
-            throw APIError.networkError("Invalid HTTP response.")
-        }
+        let (responseData, httpRes) = try await sendRequest(request)
         guard httpRes.statusCode == 204 || httpRes.statusCode == 200 else {
             let msg = String(data: responseData, encoding: .utf8) ?? "Delete failed"
             throw APIError.serverError(statusCode: httpRes.statusCode, message: msg)
@@ -190,10 +188,7 @@ public actor APIClient: APIClientProtocol {
         request.httpMethod = "DELETE"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        let (responseData, response) = try await session.data(for: request)
-        guard let httpRes = response as? HTTPURLResponse else {
-            throw APIError.networkError("Invalid HTTP response.")
-        }
+        let (responseData, httpRes) = try await sendRequest(request)
         guard (200...299).contains(httpRes.statusCode) else {
             let msg = String(data: responseData, encoding: .utf8) ?? "Data reset failed"
             throw APIError.serverError(statusCode: httpRes.statusCode, message: msg)
@@ -218,10 +213,7 @@ public actor APIClient: APIClientProtocol {
         encoder.keyEncodingStrategy = .convertToSnakeCase
         request.httpBody = try encoder.encode(reqBody)
 
-        let (data, response) = try await session.data(for: request)
-        guard let httpRes = response as? HTTPURLResponse else {
-            throw APIError.networkError("Invalid HTTP response.")
-        }
+        let (data, httpRes) = try await sendRequest(request)
         guard (200...299).contains(httpRes.statusCode) else {
             let msg = String(data: data, encoding: .utf8) ?? "HTTP \(httpRes.statusCode)"
             throw APIError.serverError(statusCode: httpRes.statusCode, message: msg)
@@ -234,6 +226,13 @@ public actor APIClient: APIClientProtocol {
                 description: raw.toolName
             )
         }
+
+        FinLensLogger.logAgentExecution(
+            toolName: toolCalls.first?.toolName,
+            grounded: dto.grounded,
+            durationMs: 0.0
+        )
+
         return AgentQueryResult(
             response: dto.response,
             toolCalls: toolCalls,
@@ -268,17 +267,7 @@ public actor APIClient: APIClientProtocol {
             request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         }
 
-        let (data, response): (Data, URLResponse)
-        do {
-            (data, response) = try await session.data(for: request)
-        } catch {
-            throw APIError.networkError(error.localizedDescription)
-        }
-
-        guard let httpRes = response as? HTTPURLResponse else {
-            throw APIError.networkError("Non-HTTP response received.")
-        }
-
+        let (data, httpRes) = try await sendRequest(request)
         guard (200...299).contains(httpRes.statusCode) else {
             let msg = String(data: data, encoding: .utf8) ?? "HTTP \(httpRes.statusCode)"
             throw APIError.serverError(statusCode: httpRes.statusCode, message: msg)
@@ -292,23 +281,65 @@ public actor APIClient: APIClientProtocol {
         }
     }
 
+    public func fetchSystemMetrics() async throws -> SystemMetrics {
+        let url = baseURL.appendingPathComponent("api/v1/observability/metrics")
+        return try await performRequest(url: url)
+    }
+
+    public func fetchAITraces(limit: Int? = 20) async throws -> [AITraceRecord] {
+        var components = URLComponents(url: baseURL.appendingPathComponent("api/v1/observability/traces"), resolvingAgainstBaseURL: true)!
+        if let limit = limit {
+            components.queryItems = [URLQueryItem(name: "limit", value: String(limit))]
+        }
+        guard let url = components.url else { throw APIError.invalidURL }
+        return try await performRequest(url: url)
+    }
+
     // MARK: - Private Helpers
 
+    private func sendRequest(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        var req = request
+        let cid = req.value(forHTTPHeaderField: "X-Correlation-ID") ?? UUID().uuidString
+        req.setValue(cid, forHTTPHeaderField: "X-Correlation-ID")
 
-    private func performRequest<T: Decodable>(url: URL) async throws -> T {
-        var request = URLRequest(url: url)
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let url = req.url, let method = req.httpMethod {
+            FinLensLogger.logRequest(method: method, url: url, correlationId: cid)
+        }
 
-        let (data, response): (Data, URLResponse)
+        let data: Data
+        let response: URLResponse
         do {
-            (data, response) = try await session.data(for: request)
+            (data, response) = try await session.data(for: req)
         } catch {
+            if let url = req.url {
+                FinLensLogger.logNetworkError(url: url, error: error.localizedDescription, correlationId: cid)
+            }
             throw APIError.networkError(error.localizedDescription)
         }
 
         guard let httpRes = response as? HTTPURLResponse else {
             throw APIError.networkError("Non-HTTP response received.")
         }
+
+        let respTime = httpRes.value(forHTTPHeaderField: "X-Response-Time")
+        if let url = req.url {
+            FinLensLogger.logResponse(
+                statusCode: httpRes.statusCode,
+                url: url,
+                correlationId: cid,
+                responseTime: respTime
+            )
+        }
+
+        return (data, httpRes)
+    }
+
+    private func performRequest<T: Decodable>(url: URL) async throws -> T {
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, httpRes) = try await sendRequest(request)
 
         guard (200...299).contains(httpRes.statusCode) else {
             let msg = String(data: data, encoding: .utf8) ?? "HTTP \(httpRes.statusCode)"

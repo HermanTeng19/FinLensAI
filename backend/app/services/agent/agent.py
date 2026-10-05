@@ -1,9 +1,11 @@
+import time
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.schemas import AgentQueryResponse, ChatMessage, ToolCallRecord
 from app.services.agent.tools import TOOL_REGISTRY
+from app.services.agent.tracker import ToolExecutionSpan, ai_tracker
 
 
 async def execute_tool(
@@ -403,4 +405,32 @@ async def query_financial_agent(
             grounded=True,
         )
 
-    return await _deterministic_rule_agent(db, clean_msg)
+    start_time = time.perf_counter()
+    agent_response = await _deterministic_rule_agent(db, clean_msg)
+    duration_ms = (time.perf_counter() - start_time) * 1000
+
+    # Build spans for observability
+    tool_spans = []
+    for tc in agent_response.tool_calls:
+        output_str = str(tc.output)[:120] if tc.output is not None else ""
+        is_err = isinstance(tc.output, dict) and "error" in tc.output
+        tool_spans.append(
+            ToolExecutionSpan(
+                tool_name=tc.tool_name,
+                arguments=tc.arguments,
+                output_summary=output_str,
+                duration_ms=round(duration_ms / max(len(agent_response.tool_calls), 1), 2),
+                success=not is_err,
+                error_message=tc.output.get("error") if is_err else None,
+            )
+        )
+
+    ai_tracker.record_trace(
+        query=clean_msg,
+        duration_ms=duration_ms,
+        grounded=agent_response.grounded,
+        tool_spans=tool_spans,
+        response_text=agent_response.response,
+    )
+
+    return agent_response

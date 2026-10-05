@@ -99,8 +99,17 @@ class CSVParser:
         "txn date",
         "post date",
     }
-    DESC_HEADERS = {"description", "desc", "memo", "details", "payee", "narrative", "transaction"}
-    AMOUNT_HEADERS = {"amount", "total", "net amount", "value"}
+    DESC_HEADERS = {
+        "description",
+        "desc",
+        "memo",
+        "details",
+        "payee",
+        "narrative",
+        "transaction",
+        "description 1",
+    }
+    AMOUNT_HEADERS = {"amount", "total", "net amount", "value", "cad$", "usd$"}
     DEBIT_HEADERS = {"debit", "withdrawal", "withdrawals", "charge", "spent"}
     CREDIT_HEADERS = {"credit", "deposit", "deposits", "payment", "received"}
 
@@ -130,15 +139,20 @@ class CSVParser:
                 header_idx = idx
                 for col_i, cell in enumerate(normalized_row):
                     if cell in cls.DATE_HEADERS:
-                        col_map["date"] = col_i
+                        if "date" not in col_map or cell in ("date", "transaction date"):
+                            col_map["date"] = col_i
                     elif cell in cls.DESC_HEADERS:
-                        col_map["desc"] = col_i
+                        if "desc" not in col_map or cell in ("description", "desc", "payee"):
+                            col_map["desc"] = col_i
                     elif cell in cls.AMOUNT_HEADERS:
-                        col_map["amount"] = col_i
+                        if "amount" not in col_map or cell in ("amount", "total"):
+                            col_map["amount"] = col_i
                     elif cell in cls.DEBIT_HEADERS:
-                        col_map["debit"] = col_i
+                        if "debit" not in col_map:
+                            col_map["debit"] = col_i
                     elif cell in cls.CREDIT_HEADERS:
-                        col_map["credit"] = col_i
+                        if "credit" not in col_map:
+                            col_map["credit"] = col_i
                 break
 
         candidates: list[ExtractedTransactionCandidate] = []

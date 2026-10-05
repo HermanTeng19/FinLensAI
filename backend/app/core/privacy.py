@@ -49,9 +49,12 @@ def redact_sensitive_text(text: str) -> str:
 
 
 class SensitiveDataFilter(logging.Filter):
-    """Logging filter that redacts sensitive financial information in log records."""
+    """Logging filter that redacts sensitive financial information in log records and attaches correlation_id."""
 
     def filter(self, record: logging.LogRecord) -> bool:
+        from app.core.telemetry import correlation_id_ctx
+
+        record.correlation_id = correlation_id_ctx.get() or "-"
         if isinstance(record.msg, str):
             record.msg = redact_sensitive_text(record.msg)
         if record.args:
