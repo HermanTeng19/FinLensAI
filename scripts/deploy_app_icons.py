@@ -34,24 +34,65 @@ MACOS_SCALES = [
 ]
 
 
+# iOS icon resolution map (idiom, size_str, scale_str, pixel_size)
+IOS_SCALES = [
+    # iPhone
+    ("iphone", "20x20", "2x", 40),
+    ("iphone", "20x20", "3x", 60),
+    ("iphone", "29x29", "2x", 58),
+    ("iphone", "29x29", "3x", 87),
+    ("iphone", "40x40", "2x", 80),
+    ("iphone", "40x40", "3x", 120),
+    ("iphone", "60x60", "2x", 120),
+    ("iphone", "60x60", "3x", 180),
+    # iPad
+    ("ipad", "20x20", "1x", 20),
+    ("ipad", "20x20", "2x", 40),
+    ("ipad", "29x29", "1x", 29),
+    ("ipad", "29x29", "2x", 58),
+    ("ipad", "40x40", "1x", 40),
+    ("ipad", "40x40", "2x", 80),
+    ("ipad", "76x76", "1x", 76),
+    ("ipad", "76x76", "2x", 152),
+    ("ipad", "83.5x83.5", "2x", 167),
+    # App Store / Marketing
+    ("ios-marketing", "1024x1024", "1x", 1024),
+]
+
+
 def setup_ios_appiconset():
     ios_set_dir = os.path.join(ASSETS_DIR, "AppIcon-iOS.appiconset")
     os.makedirs(ios_set_dir, exist_ok=True)
     
-    print("--> Deploying iOS App Icon (Emerald Green)...")
-    img = Image.open(IOS_SOURCE).convert("RGB")
-    dest_img = os.path.join(ios_set_dir, "AppIcon_iOS.png")
-    img.save(dest_img, format="PNG", optimize=True)
+    print("--> Deploying iOS & iPadOS App Icon (Emerald Green) across all native resolutions...")
+    src_img = Image.open(IOS_SOURCE).convert("RGB")
+    
+    images_list = []
+    for idiom, size_str, scale_str, px in IOS_SCALES:
+        filename = f"icon_{idiom}_{size_str}@{scale_str}.png"
+        out_path = os.path.join(ios_set_dir, filename)
+        resized = src_img.resize((px, px), Image.Resampling.LANCZOS)
+        resized.save(out_path, format="PNG", optimize=True)
+        
+        images_list.append({
+            "size": size_str,
+            "idiom": idiom,
+            "filename": filename,
+            "scale": scale_str
+        })
+    
+    # Also include universal 1024x1024 for modern Xcode 15+ compatibility
+    universal_dest = os.path.join(ios_set_dir, "AppIcon_iOS_universal.png")
+    src_img.save(universal_dest, format="PNG", optimize=True)
+    images_list.append({
+        "size": "1024x1024",
+        "idiom": "universal",
+        "platform": "ios",
+        "filename": "AppIcon_iOS_universal.png"
+    })
     
     contents = {
-        "images": [
-            {
-                "filename": "AppIcon_iOS.png",
-                "idiom": "universal",
-                "platform": "ios",
-                "size": "1024x1024"
-            }
-        ],
+        "images": images_list,
         "info": {
             "author": "xcode",
             "version": 1
@@ -60,7 +101,7 @@ def setup_ios_appiconset():
     
     with open(os.path.join(ios_set_dir, "Contents.json"), "w", encoding="utf-8") as f:
         json.dump(contents, f, indent=2)
-    print("✓ AppIcon-iOS.appiconset configured successfully.")
+    print(f"✓ AppIcon-iOS.appiconset configured successfully ({len(images_list)} scales generated).")
 
 
 def setup_macos_appiconset():
@@ -101,27 +142,40 @@ def setup_unified_appiconset():
     unified_dir = os.path.join(ASSETS_DIR, "AppIcon.appiconset")
     os.makedirs(unified_dir, exist_ok=True)
     
-    print("--> Configuring fallback unified AppIcon.appiconset...")
-    # 1. Copy iOS 1024
-    ios_img = Image.open(IOS_SOURCE).convert("RGB")
-    ios_dest = os.path.join(unified_dir, "AppIcon_iOS.png")
-    ios_img.save(ios_dest, format="PNG", optimize=True)
-    
-    # 2. Copy macOS scales
-    src_img = Image.open(MACOS_SOURCE).convert("RGB")
-    images_list = [
-        {
-            "filename": "AppIcon_iOS.png",
-            "idiom": "universal",
-            "platform": "ios",
-            "size": "1024x1024"
-        }
-    ]
-    
-    for size_str, scale_str, px in MACOS_SCALES:
-        filename = f"icon_{size_str}@{scale_str}.png" if scale_str == "2x" else f"icon_{size_str}.png"
+    print("--> Configuring fallback unified AppIcon.appiconset with all platforms & scales...")
+    images_list = []
+
+    # 1. iOS & iPadOS scales
+    ios_src_img = Image.open(IOS_SOURCE).convert("RGB")
+    for idiom, size_str, scale_str, px in IOS_SCALES:
+        filename = f"icon_{idiom}_{size_str}@{scale_str}.png"
         out_path = os.path.join(unified_dir, filename)
-        resized = src_img.resize((px, px), Image.Resampling.LANCZOS)
+        resized = ios_src_img.resize((px, px), Image.Resampling.LANCZOS)
+        resized.save(out_path, format="PNG", optimize=True)
+        
+        images_list.append({
+            "size": size_str,
+            "idiom": idiom,
+            "filename": filename,
+            "scale": scale_str
+        })
+    
+    # Universal iOS
+    universal_dest = os.path.join(unified_dir, "AppIcon_iOS_universal.png")
+    ios_src_img.save(universal_dest, format="PNG", optimize=True)
+    images_list.append({
+        "size": "1024x1024",
+        "idiom": "universal",
+        "platform": "ios",
+        "filename": "AppIcon_iOS_universal.png"
+    })
+    
+    # 2. macOS scales
+    mac_src_img = Image.open(MACOS_SOURCE).convert("RGB")
+    for size_str, scale_str, px in MACOS_SCALES:
+        filename = f"icon_mac_{size_str}@{scale_str}.png" if scale_str == "2x" else f"icon_mac_{size_str}.png"
+        out_path = os.path.join(unified_dir, filename)
+        resized = mac_src_img.resize((px, px), Image.Resampling.LANCZOS)
         resized.save(out_path, format="PNG", optimize=True)
         
         images_list.append({
@@ -141,7 +195,7 @@ def setup_unified_appiconset():
     
     with open(os.path.join(unified_dir, "Contents.json"), "w", encoding="utf-8") as f:
         json.dump(contents, f, indent=2)
-    print("✓ Unified AppIcon.appiconset configured successfully.")
+    print(f"✓ Unified AppIcon.appiconset configured successfully ({len(images_list)} scales generated).")
 
 
 def main():
