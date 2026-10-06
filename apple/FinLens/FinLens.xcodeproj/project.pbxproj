@@ -10,29 +10,40 @@
 		08DF5BA7FE769AAC4166719F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B065A88F94C5A5890076BC36 /* ContentView.swift */; };
 		137A019DE540EE765DF5AB17 /* iPadRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 934C77A15E9A72D4568F23DC /* iPadRootView.swift */; };
 		23F9A5754E969724072AB7FB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 519CBC6A8E98349EE53282D1 /* Assets.xcassets */; };
+		2603E93C58D40BC4607F9DCF /* AppIcon_iOS_1024_green.png in Resources */ = {isa = PBXBuildFile; fileRef = 6EE597D73D1556C6E561C30F /* AppIcon_iOS_1024_green.png */; };
 		278BE9208F302639F3C1B027 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B065A88F94C5A5890076BC36 /* ContentView.swift */; };
+		2A36A697D433903B90FF2933 /* AppIcon_iOS_1024_bluepurple_v1.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C63629C02E4DC71D23F2D8A /* AppIcon_iOS_1024_bluepurple_v1.png */; };
 		31D9CC0BC67A669D855F354C /* TabSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560472F131491C1A5E21C45B /* TabSectionView.swift */; };
 		34E024FE96E7FADBFDA1C151 /* FinLensApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1850376DEA4720BB4C4F4 /* FinLensApp.swift */; };
 		381E57E5C3370880F1270784 /* MacTransactionsTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF44BF4E14063C845349A1B3 /* MacTransactionsTableView.swift */; };
 		58013BA9845A5EBCBF3FD477 /* TransactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707FFC9047C414E5151BE0E6 /* TransactionDetailView.swift */; };
 		58F3284DD28D14725011EE09 /* FinLensCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0D8D74FA81D8CF0D3185B222 /* FinLensCore */; };
+		66EED90C385C3BCE4A9CE685 /* AppIcon_iOS_1024.png in Resources */ = {isa = PBXBuildFile; fileRef = BF5B5BCBAA6EA7900537F99F /* AppIcon_iOS_1024.png */; };
 		693BF79BBBB006663588F901 /* iPadRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 934C77A15E9A72D4568F23DC /* iPadRootView.swift */; };
 		7A0362659A5D2F973DAAFCB8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 519CBC6A8E98349EE53282D1 /* Assets.xcassets */; };
 		885B400D68B3C0943FD2C26C /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E88BB4970DF167533D91CDE5 /* MacRootView.swift */; };
+		8B71334A2F71888D78AA2454 /* AppIcon_macOS_1024.png in Resources */ = {isa = PBXBuildFile; fileRef = 149830218DAD0EEB70FA7CF2 /* AppIcon_macOS_1024.png */; };
 		914FCBD4EF7D77814F754825 /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E88BB4970DF167533D91CDE5 /* MacRootView.swift */; };
 		93FB46EB6DC5934B9FDA2050 /* TransactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707FFC9047C414E5151BE0E6 /* TransactionDetailView.swift */; };
+		952284387D397D5AC032411F /* AppIcon_iOS_1024_bluepurple_v1.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C63629C02E4DC71D23F2D8A /* AppIcon_iOS_1024_bluepurple_v1.png */; };
+		A751153861653354AA82B0BD /* AppIcon_iOS_1024.png in Resources */ = {isa = PBXBuildFile; fileRef = BF5B5BCBAA6EA7900537F99F /* AppIcon_iOS_1024.png */; };
 		AAFF68FD8E9E63794C7C42F0 /* iOSRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E07AF25DB0371D21761C18 /* iOSRootView.swift */; };
 		C23D81F7309B628632EF6800 /* FinLensCore in Frameworks */ = {isa = PBXBuildFile; productRef = D4A5F3A3846170B4B73769B6 /* FinLensCore */; };
+		D0E572A86C7A4E1E662A6BD0 /* AppIcon_iOS_1024_green.png in Resources */ = {isa = PBXBuildFile; fileRef = 6EE597D73D1556C6E561C30F /* AppIcon_iOS_1024_green.png */; };
 		D0EDB60AAD338DB2997401C2 /* MacTransactionsTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF44BF4E14063C845349A1B3 /* MacTransactionsTableView.swift */; };
 		D36AAA36D4BEB03207774F58 /* TabSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560472F131491C1A5E21C45B /* TabSectionView.swift */; };
+		D6D2A36217C877DB03D53B79 /* AppIcon_macOS_1024.png in Resources */ = {isa = PBXBuildFile; fileRef = 149830218DAD0EEB70FA7CF2 /* AppIcon_macOS_1024.png */; };
 		D7EA21C6B4FA68DF28093B28 /* iOSRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E07AF25DB0371D21761C18 /* iOSRootView.swift */; };
 		EDBA6014F3DD1A2A5C195C92 /* FinLensApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1850376DEA4720BB4C4F4 /* FinLensApp.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		149830218DAD0EEB70FA7CF2 /* AppIcon_macOS_1024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppIcon_macOS_1024.png; sourceTree = "<group>"; };
 		4314378E3ECAB8E51E20DA42 /* FinLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4C63629C02E4DC71D23F2D8A /* AppIcon_iOS_1024_bluepurple_v1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppIcon_iOS_1024_bluepurple_v1.png; sourceTree = "<group>"; };
 		519CBC6A8E98349EE53282D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		560472F131491C1A5E21C45B /* TabSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSectionView.swift; sourceTree = "<group>"; };
+		6EE597D73D1556C6E561C30F /* AppIcon_iOS_1024_green.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppIcon_iOS_1024_green.png; sourceTree = "<group>"; };
 		700A473A059C31ABA8885423 /* FinLens_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FinLens_iOS.entitlements; sourceTree = "<group>"; };
 		707FFC9047C414E5151BE0E6 /* TransactionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionDetailView.swift; sourceTree = "<group>"; };
 		8E4DB416F79234971C7956DE /* FinLens.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FinLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -42,6 +53,7 @@
 		A7E07AF25DB0371D21761C18 /* iOSRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSRootView.swift; sourceTree = "<group>"; };
 		B065A88F94C5A5890076BC36 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		BF44BF4E14063C845349A1B3 /* MacTransactionsTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacTransactionsTableView.swift; sourceTree = "<group>"; };
+		BF5B5BCBAA6EA7900537F99F /* AppIcon_iOS_1024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppIcon_iOS_1024.png; sourceTree = "<group>"; };
 		DB5658B6202283DD507D1E6F /* FinLens_macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FinLens_macOS.entitlements; sourceTree = "<group>"; };
 		E88BB4970DF167533D91CDE5 /* MacRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacRootView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -109,6 +121,10 @@
 		9AB87D61F24A1BA2AE118CC4 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				4C63629C02E4DC71D23F2D8A /* AppIcon_iOS_1024_bluepurple_v1.png */,
+				6EE597D73D1556C6E561C30F /* AppIcon_iOS_1024_green.png */,
+				BF5B5BCBAA6EA7900537F99F /* AppIcon_iOS_1024.png */,
+				149830218DAD0EEB70FA7CF2 /* AppIcon_macOS_1024.png */,
 				519CBC6A8E98349EE53282D1 /* Assets.xcassets */,
 				700A473A059C31ABA8885423 /* FinLens_iOS.entitlements */,
 				DB5658B6202283DD507D1E6F /* FinLens_macOS.entitlements */,
@@ -208,6 +224,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A751153861653354AA82B0BD /* AppIcon_iOS_1024.png in Resources */,
+				2A36A697D433903B90FF2933 /* AppIcon_iOS_1024_bluepurple_v1.png in Resources */,
+				D0E572A86C7A4E1E662A6BD0 /* AppIcon_iOS_1024_green.png in Resources */,
+				D6D2A36217C877DB03D53B79 /* AppIcon_macOS_1024.png in Resources */,
 				7A0362659A5D2F973DAAFCB8 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -216,6 +236,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66EED90C385C3BCE4A9CE685 /* AppIcon_iOS_1024.png in Resources */,
+				952284387D397D5AC032411F /* AppIcon_iOS_1024_bluepurple_v1.png in Resources */,
+				2603E93C58D40BC4607F9DCF /* AppIcon_iOS_1024_green.png in Resources */,
+				8B71334A2F71888D78AA2454 /* AppIcon_macOS_1024.png in Resources */,
 				23F9A5754E969724072AB7FB /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -260,6 +284,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=iphone*]" = "AppIcon-iOS";
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = "AppIcon-macOS";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = Resources/FinLens_macOS.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -288,6 +314,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=iphone*]" = "AppIcon-iOS";
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = "AppIcon-macOS";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = Resources/FinLens_macOS.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -317,6 +345,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=iphone*]" = "AppIcon-iOS";
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = "AppIcon-macOS";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = Resources/FinLens_macOS.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -472,6 +502,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=iphone*]" = "AppIcon-iOS";
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = "AppIcon-macOS";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = Resources/FinLens_macOS.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
