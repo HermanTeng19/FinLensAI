@@ -113,6 +113,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 # Routers
 app.include_router(health_router)
+app.include_router(health_router, prefix="/api")
 app.include_router(statements_router, prefix=settings.API_V1_PREFIX)
 app.include_router(transactions_router, prefix=settings.API_V1_PREFIX)
 app.include_router(analytics_router, prefix=settings.API_V1_PREFIX)
