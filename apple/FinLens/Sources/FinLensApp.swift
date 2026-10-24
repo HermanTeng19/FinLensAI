@@ -3,7 +3,18 @@ import FinLensCore
 
 @main
 struct FinLensApp: App {
-    @State private var appViewModel = AppViewModel()
+    @State private var appViewModel: AppViewModel
+
+    init() {
+        let initialTab: NavigationTab = CommandLine.arguments.contains("--tab-ask-ai") ? .askAI : .dashboard
+        let vm = AppViewModel(initialTab: initialTab)
+        if let promptIdx = CommandLine.arguments.firstIndex(of: "--prompt"),
+           promptIdx + 1 < CommandLine.arguments.count {
+            let prompt = CommandLine.arguments[promptIdx + 1]
+            vm.askAIAssistant(prompt: prompt)
+        }
+        _appViewModel = State(initialValue: vm)
+    }
 
     var body: some Scene {
         WindowGroup {
