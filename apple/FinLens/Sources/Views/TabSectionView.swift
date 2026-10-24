@@ -844,12 +844,13 @@ struct ChatMessageRow: View {
         HStack(alignment: .top, spacing: 10) {
             if message.role == .user {
                 Spacer(minLength: 40)
-                Text(message.content)
+                Text(LocalizedStringKey(message.content))
                     .font(.body)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
                     .background(RoundedRectangle(cornerRadius: 16).fill(Color.accentColor))
+                    .textSelection(.enabled)
             } else {
                 VStack(alignment: .leading, spacing: 8) {
                     // Header with Grounded Badge
@@ -895,11 +896,8 @@ struct ChatMessageRow: View {
                         }
                     }
 
-                    // Message Content
-                    Text(message.content)
-                        .font(.body)
-                        .foregroundStyle(.primary)
-                        .textSelection(.enabled)
+                    // Message Content with Rich Markdown Rendering
+                    MarkdownContentView(content: message.content)
                 }
                 .padding(14)
                 .background(RoundedRectangle(cornerRadius: 16).fill(Color.secondary.opacity(0.08)))

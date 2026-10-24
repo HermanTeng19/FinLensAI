@@ -46,3 +46,13 @@ targets:
         INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
         "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": "Resources/FinLens_macOS.entitlements"
         ENABLE_HARDENED_RUNTIME: YES
+
+schemes:
+  FinLens_macOS:
+    build:
+      targets:
+        FinLens_macOS: all
+  FinLens_iOS:
+    build:
+      targets:
+        FinLens_iOS: all
